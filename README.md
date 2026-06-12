@@ -1,11 +1,11 @@
-# AB Testing
-A simple AB testing implementation in Python.
+# code-catalyst
+A minimal A/B testing framework that lets founders run simple experiments on up to three page variations, automatically compute statistical significance, and update a dashboard JSON file.
+
+## Features
+- Create up to 3 variations per test.
+- Start and stop tests manually.
+- Record impressions and conversions.
+- Compute two‑proportion z‑test for significance (p < 0.05).
+- Persist results to `dashboard.json`.
 
 ## Usage
-1. Create an instance of the `ABTesting` class.
-2. Add a page with variants using the `add_page` method.
-3. Split traffic between variants using the `split_traffic` method.
-4. Get results for a page using the `get_results` method.
-
-## Testing
-Run tests using `pytest` in the `tests` directory.
