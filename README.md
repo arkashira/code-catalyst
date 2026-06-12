@@ -1,10 +1,24 @@
-# Prototype
-A simple prototype management system.
+# Code Catalyst
+
+Code Catalyst is a project that provides basic usage analytics, A/B testing experiments, and notifications for significant changes in user behavior.
+
 ## Features
-* Create and share prototypes
-* Collect and view feedback
+
+* Track page views and user engagement
+* Create and update A/B testing experiments
+* Send notifications for significant changes in user behavior
+
+## Requirements
+
+* Python 3.9 or later
+* pytest 7.1.2 or later
+
+## Installation
+
+1. Install the required dependencies using pip: `pip install -r requirements.txt`
+2. Run the tests using pytest: `pytest tests`
+
 ## Usage
-1. Create a prototype with `PrototypeManager.create_prototype`
-2. Share the prototype with `PrototypeManager.share_prototype`
-3. Collect feedback with `PrototypeManager.collect_feedback`
-4. View feedback with `PrototypeManager.view_feedback`
+
+1. Import the Analytics, ABTesting, and NotificationSystem classes from the src/analytics module
+2. Create instances of the classes and use their methods to track page views, calculate user engagement, create and update A/B testing experiments, and send notifications

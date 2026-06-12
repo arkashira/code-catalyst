@@ -1,67 +1,62 @@
 import json
-import dataclasses
-import datetime
-import time
 from dataclasses import dataclass
-from typing import List
+from typing import Dict
 
 @dataclass
 class PageView:
-    page: str
-    timestamp: datetime.datetime
+    user_id: int
+    page_name: str
 
 @dataclass
-class UniqueVisitor:
-    visitor_id: str
-    timestamp: datetime.datetime
-
-@dataclass
-class SessionDuration:
-    session_id: str
-    duration: int
-
-@dataclass
-class ConversionEvent:
-    event_type: str
-    timestamp: datetime.datetime
+class UserEngagement:
+    user_id: int
+    engagement_score: float
 
 class Analytics:
     def __init__(self):
         self.page_views = []
-        self.unique_visitors = []
-        self.session_durations = []
-        self.conversion_events = []
+        self.user_engagement = {}
 
-    def add_page_view(self, page: str):
-        self.page_views.append(PageView(page, datetime.datetime.now()))
+    def track_page_view(self, user_id: int, page_name: str):
+        self.page_views.append(PageView(user_id, page_name))
 
-    def add_unique_visitor(self, visitor_id: str):
-        self.unique_visitors.append(UniqueVisitor(visitor_id, datetime.datetime.now()))
+    def calculate_user_engagement(self, user_id: int, engagement_score: float):
+        self.user_engagement[user_id] = engagement_score
 
-    def add_session_duration(self, session_id: str, duration: int):
-        self.session_durations.append(SessionDuration(session_id, duration))
+    def get_page_views(self) -> Dict[int, int]:
+        page_views_per_user = {}
+        for page_view in self.page_views:
+            if page_view.user_id not in page_views_per_user:
+                page_views_per_user[page_view.user_id] = 0
+            page_views_per_user[page_view.user_id] += 1
+        return page_views_per_user
 
-    def add_conversion_event(self, event_type: str):
-        self.conversion_events.append(ConversionEvent(event_type, datetime.datetime.now()))
+    def get_user_engagement(self) -> Dict[int, float]:
+        return self.user_engagement
 
-    def get_page_views(self):
-        return len(self.page_views)
+class ABTesting:
+    def __init__(self):
+        self.experiments = {}
 
-    def get_unique_visitors(self):
-        return len(set([visitor.visitor_id for visitor in self.unique_visitors]))
+    def create_experiment(self, experiment_name: str):
+        self.experiments[experiment_name] = {"variant_a": 0, "variant_b": 0}
 
-    def get_session_durations(self):
-        return [session.duration for session in self.session_durations]
+    def update_experiment(self, experiment_name: str, variant: str):
+        if experiment_name in self.experiments:
+            if variant == "variant_a":
+                self.experiments[experiment_name]["variant_a"] += 1
+            elif variant == "variant_b":
+                self.experiments[experiment_name]["variant_b"] += 1
 
-    def get_conversion_events(self):
-        return len(self.conversion_events)
+    def get_experiment_results(self, experiment_name: str) -> Dict[str, int]:
+        return self.experiments.get(experiment_name, {})
 
-    def export_to_csv(self):
-        with open('analytics.csv', 'w') as f:
-            f.write('Page Views,Unique Visitors,Session Durations,Conversion Events\n')
-            f.write(f'{self.get_page_views()},{self.get_unique_visitors()},{sum(self.get_session_durations())},{self.get_conversion_events()}\n')
+class NotificationSystem:
+    def __init__(self):
+        self.notifications = []
 
-def refresh_data(analytics: Analytics):
-    while True:
-        time.sleep(300)  # refresh every 5 minutes
-        analytics.export_to_csv()
+    def send_notification(self, message: str):
+        self.notifications.append(message)
+
+    def get_notifications(self) -> list:
+        return self.notifications

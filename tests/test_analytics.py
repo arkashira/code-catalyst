@@ -1,37 +1,41 @@
+from src.analytics import Analytics, ABTesting, NotificationSystem
 import pytest
-from analytics import Analytics, PageView, UniqueVisitor, SessionDuration, ConversionEvent
 
-def test_page_views():
+def test_track_page_view():
     analytics = Analytics()
-    analytics.add_page_view('home')
-    analytics.add_page_view('about')
-    assert analytics.get_page_views() == 2
+    analytics.track_page_view(1, "home")
+    assert len(analytics.page_views) == 1
 
-def test_unique_visitors():
+def test_calculate_user_engagement():
     analytics = Analytics()
-    analytics.add_unique_visitor('visitor1')
-    analytics.add_unique_visitor('visitor2')
-    analytics.add_unique_visitor('visitor1')
-    assert analytics.get_unique_visitors() == 2
+    analytics.calculate_user_engagement(1, 0.5)
+    assert analytics.user_engagement[1] == 0.5
 
-def test_session_durations():
+def test_get_page_views():
     analytics = Analytics()
-    analytics.add_session_duration('session1', 10)
-    analytics.add_session_duration('session2', 20)
-    assert analytics.get_session_durations() == [10, 20]
+    analytics.track_page_view(1, "home")
+    analytics.track_page_view(1, "about")
+    analytics.track_page_view(2, "home")
+    assert analytics.get_page_views() == {1: 2, 2: 1}
 
-def test_conversion_events():
+def test_get_user_engagement():
     analytics = Analytics()
-    analytics.add_conversion_event('click')
-    analytics.add_conversion_event('click')
-    assert analytics.get_conversion_events() == 2
+    analytics.calculate_user_engagement(1, 0.5)
+    analytics.calculate_user_engagement(2, 0.7)
+    assert analytics.get_user_engagement() == {1: 0.5, 2: 0.7}
 
-def test_export_to_csv(tmp_path):
-    analytics = Analytics()
-    analytics.add_page_view('home')
-    analytics.add_unique_visitor('visitor1')
-    analytics.add_session_duration('session1', 10)
-    analytics.add_conversion_event('click')
-    analytics.export_to_csv()
-    with open('analytics.csv', 'r') as f:
-        assert f.read() == 'Page Views,Unique Visitors,Session Durations,Conversion Events\n1,1,10,1\n'
+def test_create_experiment():
+    ab_testing = ABTesting()
+    ab_testing.create_experiment("experiment_1")
+    assert "experiment_1" in ab_testing.experiments
+
+def test_update_experiment():
+    ab_testing = ABTesting()
+    ab_testing.create_experiment("experiment_1")
+    ab_testing.update_experiment("experiment_1", "variant_a")
+    assert ab_testing.get_experiment_results("experiment_1") == {"variant_a": 1, "variant_b": 0}
+
+def test_send_notification():
+    notification_system = NotificationSystem()
+    notification_system.send_notification("Notification 1")
+    assert len(notification_system.get_notifications()) == 1
