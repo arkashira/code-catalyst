@@ -3,45 +3,35 @@ from dataclasses import dataclass
 from typing import List
 
 @dataclass
-class Version:
+class Variant:
     name: str
-    parameters: dict
+    traffic_ratio: int
 
 @dataclass
-class Test:
+class Page:
     name: str
-    versions: List[Version]
-    target_audience: str
-    results: dict
+    variants: List[Variant]
 
 class ABTesting:
     def __init__(self):
-        self.tests = []
+        self.pages = {}
 
-    def create_version(self, name, parameters):
-        return Version(name, parameters)
+    def add_page(self, page: Page):
+        self.pages[page.name] = page
 
-    def create_test(self, name, versions, target_audience):
-        test = Test(name, versions, target_audience, {})
-        self.tests.append(test)
-        return test
+    def get_page(self, page_name: str):
+        return self.pages.get(page_name)
 
-    def run_test(self, test):
-        # Simulate running the test
-        test.results = {
-            test.versions[0].name: 50,
-            test.versions[1].name: 50
-        }
+    def split_traffic(self, page_name: str):
+        page = self.get_page(page_name)
+        if page:
+            total_ratio = sum(variant.traffic_ratio for variant in page.variants)
+            return {variant.name: variant.traffic_ratio / total_ratio for variant in page.variants}
+        return {}
 
-    def view_results(self, test):
-        return test.results
-
-    def compare_results(self, test):
-        version1, version2 = test.versions
-        results = test.results
-        if results[version1.name] > results[version2.name]:
-            return f"{version1.name} performs better"
-        elif results[version1.name] < results[version2.name]:
-            return f"{version2.name} performs better"
-        else:
-            return "Both versions perform equally"
+    def get_results(self, page_name: str):
+        page = self.get_page(page_name)
+        if page:
+            # Simulate results for demonstration purposes
+            return {variant.name: {"CTR": 0.5, "conversion": 0.2} for variant in page.variants}
+        return {}

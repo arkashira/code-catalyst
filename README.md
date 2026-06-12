@@ -1,16 +1,11 @@
-# Code Catalyst
-
-A minimal implementation of Backend-as-a-Service (BaaS) with built-in authentication.
-
-## Features
-
-* Authentication via Google and GitHub
-* Session tokens stored securely in the database
-* Auth can be enabled via a toggle in the project settings
+# AB Testing
+A simple AB testing implementation in Python.
 
 ## Usage
+1. Create an instance of the `ABTesting` class.
+2. Add a page with variants using the `add_page` method.
+3. Split traffic between variants using the `split_traffic` method.
+4. Get results for a page using the `get_results` method.
 
-1. Create an instance of the `Auth` class
-2. Enable authentication using the `enable_auth` method
-3. Authenticate with a provider using the `authenticate` method
-4. Validate a session token using the `validate_session` method
+## Testing
+Run tests using `pytest` in the `tests` directory.

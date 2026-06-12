@@ -1,42 +1,33 @@
-from ab_testing import ABTesting, Version, Test
+from ab_testing import ABTesting, Page, Variant
 
-def test_create_version():
+def test_add_page():
     ab_testing = ABTesting()
-    version = ab_testing.create_version("Version 1", {"param1": "value1"})
-    assert version.name == "Version 1"
-    assert version.parameters == {"param1": "value1"}
+    page = Page("test_page", [Variant("variant1", 1), Variant("variant2", 1)])
+    ab_testing.add_page(page)
+    assert ab_testing.get_page("test_page") == page
 
-def test_create_test():
+def test_split_traffic():
     ab_testing = ABTesting()
-    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
-    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
-    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
-    assert test.name == "Test 1"
-    assert test.versions == [version1, version2]
-    assert test.target_audience == "Target Audience"
+    page = Page("test_page", [Variant("variant1", 1), Variant("variant2", 1)])
+    ab_testing.add_page(page)
+    traffic_split = ab_testing.split_traffic("test_page")
+    assert traffic_split == {"variant1": 0.5, "variant2": 0.5}
 
-def test_run_test():
+def test_get_results():
     ab_testing = ABTesting()
-    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
-    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
-    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
-    ab_testing.run_test(test)
-    assert test.results == {"Version 1": 50, "Version 2": 50}
+    page = Page("test_page", [Variant("variant1", 1), Variant("variant2", 1)])
+    ab_testing.add_page(page)
+    results = ab_testing.get_results("test_page")
+    assert results == {"variant1": {"CTR": 0.5, "conversion": 0.2}, "variant2": {"CTR": 0.5, "conversion": 0.2}}
 
-def test_view_results():
+def test_get_page_not_found():
     ab_testing = ABTesting()
-    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
-    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
-    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
-    ab_testing.run_test(test)
-    results = ab_testing.view_results(test)
-    assert results == {"Version 1": 50, "Version 2": 50}
+    assert ab_testing.get_page("non_existent_page") is None
 
-def test_compare_results():
+def test_split_traffic_not_found():
     ab_testing = ABTesting()
-    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
-    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
-    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
-    test.results = {"Version 1": 60, "Version 2": 40}
-    comparison = ab_testing.compare_results(test)
-    assert comparison == "Version 1 performs better"
+    assert ab_testing.split_traffic("non_existent_page") == {}
+
+def test_get_results_not_found():
+    ab_testing = ABTesting()
+    assert ab_testing.get_results("non_existent_page") == {}
