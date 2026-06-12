@@ -1,36 +1,34 @@
 import argparse
+import json
+import subprocess
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 @dataclass
 class Deployment:
-    image_name: str
+    provider: str
     cluster_name: str
-    public_url: str
+    subdomain: str
 
-def push_to_docker_hub(image_name: str) -> None:
-    """Simulate pushing an image to Docker Hub."""
-    print(f"Pushing {image_name} to Docker Hub")
+def deploy(deployment: Deployment):
+    terraform_cmd = f"terraform apply -auto-approve -var provider={deployment.provider} -var cluster_name={deployment.cluster_name} -var subdomain={deployment.subdomain}"
+    subprocess.run(terraform_cmd, shell=True)
 
-def create_kubernetes_deployment(cluster_name: str, image_name: str) -> None:
-    """Simulate creating a Kubernetes deployment."""
-    print(f"Creating deployment on {cluster_name} with {image_name}")
+def get_deployment_logs(deployment: Deployment):
+    terraform_cmd = f"terraform output -json"
+    output = subprocess.check_output(terraform_cmd, shell=True)
+    return json.loads(output)
 
-def get_public_url(cluster_name: str) -> str:
-    """Simulate retrieving a public HTTPS URL for a cluster."""
-    return f"https://{cluster_name}.example.com"
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--provider", help="Cloud provider")
+    parser.add_argument("--cluster-name", help="Kubernetes cluster name")
+    parser.add_argument("--subdomain", help="Unique subdomain")
+    args = parser.parse_args()
+    deployment = Deployment(args.provider, args.cluster_name, args.subdomain)
+    deploy(deployment)
+    logs = get_deployment_logs(deployment)
+    print(logs)
 
-def deploy(image_name: str, cluster_name: str) -> Deployment:
-    """Perform the full deployment workflow:
-    1. Push the image to Docker Hub.
-    2. Create a Kubernetes deployment.
-    3. Retrieve the public URL.
-    Returns a Deployment dataclass instance.
-    """
-    push_to_docker_hub(image_name)
-    create_kubernetes_deployment(cluster_name, image_name)
-    public_url = get_public_url(cluster_name)
-    return Deployment(image_name, cluster_name, public_url)
-
-deploy.push_to_docker_hub = push_to_docker_hub
-deploy.create_kubernetes_deployment = create_kubernetes_deployment
-deploy.get_public_url = get_public_url
+if __name__ == "__main__":
+    main()

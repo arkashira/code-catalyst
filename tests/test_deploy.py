@@ -1,23 +1,27 @@
-from deploy import deploy
+import pytest
+from unittest.mock import patch, MagicMock
+from deploy import deploy, get_deployment_logs, Deployment
 
 def test_deploy():
-    image_name = "test-image"
-    cluster_name = "test-cluster"
-    deployment = deploy(image_name, cluster_name)
-    assert deployment.image_name == image_name
-    assert deployment.cluster_name == cluster_name
-    assert deployment.public_url == f"https://{cluster_name}.example.com"
+    deployment = Deployment("digitalocean", "test-cluster", "test-subdomain")
+    with patch("subprocess.run") as mock_run:
+        deploy(deployment)
+        mock_run.assert_called_once()
 
-def test_push_to_docker_hub():
-    image_name = "test-image"
-    deploy.push_to_docker_hub(image_name)
+def test_get_deployment_logs():
+    deployment = Deployment("digitalocean", "test-cluster", "test-subdomain")
+    with patch("subprocess.check_output") as mock_output:
+        mock_output.return_value = b'{"logs": "test-logs"}'
+        logs = get_deployment_logs(deployment)
+        assert logs == {"logs": "test-logs"}
 
-def test_create_kubernetes_deployment():
-    cluster_name = "test-cluster"
-    image_name = "test-image"
-    deploy.create_kubernetes_deployment(cluster_name, image_name)
-
-def test_get_public_url():
-    cluster_name = "test-cluster"
-    public_url = deploy.get_public_url(cluster_name)
-    assert public_url == f"https://{cluster_name}.example.com"
+def test_main():
+    with patch("argparse.ArgumentParser") as mock_parser:
+        mock_parser.return_value.parse_args.return_value = MagicMock(provider="digitalocean", cluster_name="test-cluster", subdomain="test-subdomain")
+        with patch("deploy.deploy") as mock_deploy:
+            with patch("deploy.get_deployment_logs") as mock_get_logs:
+                mock_get_logs.return_value = {"logs": "test-logs"}
+                from deploy import main
+                main()
+                mock_deploy.assert_called_once()
+                mock_get_logs.assert_called_once()
