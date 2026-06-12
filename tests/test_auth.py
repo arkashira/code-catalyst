@@ -1,38 +1,39 @@
-import pytest
-from src.auth import Auth
-from src.config import Config, load_config, save_config
+from auth import generate_jwt_middleware, set_role_definitions, toggle_authentication
+from dataclasses import dataclass
+from typing import Dict
 
-def test_enable_auth():
-    config = Config(False, {'google': 'https://google.com', 'github': 'https://github.com'})
-    save_config('config.json', config)
-    auth = Auth(load_config('config.json'))
-    auth.enable_auth()
-    config = load_config('config.json')
-    assert config.auth_enabled
+@dataclass
+class Role:
+    name: str
+    permissions: Dict[str, bool]
 
-def test_disable_auth():
-    config = Config(True, {'google': 'https://google.com', 'github': 'https://github.com'})
-    save_config('config.json', config)
-    auth = Auth(load_config('config.json'))
-    auth.disable_auth()
-    config = load_config('config.json')
-    assert not config.auth_enabled
+@dataclass
+class Page:
+    name: str
+    roles: Dict[str, Role]
 
-def test_login():
-    config = Config(True, {'google': 'https://google.com', 'github': 'https://github.com'})
-    save_config('config.json', config)
-    auth = Auth(load_config('config.json'))
-    user_data = {'name': 'John Doe', 'email': 'john@example.com'}
-    session_token = auth.login('google', user_data)
-    assert session_token
+@dataclass
+class AuthConfig:
+    enabled: bool
+    pages: Dict[str, Page]
 
-def test_validate_session_token():
-    config = Config(True, {'google': 'https://google.com', 'github': 'https://github.com'})
-    save_config('config.json', config)
-    auth = Auth(load_config('config.json'))
-    user_data = {'name': 'John Doe', 'email': 'john@example.com'}
-    session_token = auth.login('google', user_data)
-    user = auth.validate_session_token(session_token)
-    assert user
-    assert user.name == 'John Doe'
-    assert user.email == 'john@example.com'
+def test_generate_jwt_middleware():
+    auth_config = AuthConfig(enabled=True, pages={})
+    middleware = generate_jwt_middleware(auth_config)
+    assert middleware.startswith("def jwt_middleware(request):")
+
+def test_generate_jwt_middleware_disabled():
+    auth_config = AuthConfig(enabled=False, pages={})
+    middleware = generate_jwt_middleware(auth_config)
+    assert middleware == ""
+
+def test_set_role_definitions():
+    auth_config = AuthConfig(enabled=True, pages={})
+    roles = {"admin": Role("admin", {"read": True, "write": True})}
+    auth_config = set_role_definitions("home", roles, auth_config)
+    assert auth_config.pages["home"].roles == roles
+
+def test_toggle_authentication():
+    auth_config = AuthConfig(enabled=True, pages={})
+    auth_config = toggle_authentication(auth_config, False)
+    assert auth_config.enabled == False

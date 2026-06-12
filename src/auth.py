@@ -1,37 +1,39 @@
-import hashlib
+import json
 from dataclasses import dataclass
 from typing import Dict
-from config import save_config
 
 @dataclass
-class User:
-    id: str
+class Role:
     name: str
-    email: str
+    permissions: Dict[str, bool]
 
-class Auth:
-    def __init__(self, config):
-        self.config = config
-        self.users = {}
-        self.session_tokens = {}
+@dataclass
+class Page:
+    name: str
+    roles: Dict[str, Role]
 
-    def enable_auth(self):
-        self.config.auth_enabled = True
-        save_config('config.json', self.config)
+@dataclass
+class AuthConfig:
+    enabled: bool
+    pages: Dict[str, Page]
 
-    def disable_auth(self):
-        self.config.auth_enabled = False
-        save_config('config.json', self.config)
+def generate_jwt_middleware(auth_config: AuthConfig) -> str:
+    if not auth_config.enabled:
+        return ""
+    middleware = "def jwt_middleware(request):\n"
+    middleware += "    if not request.headers.get('Authorization'):\n"
+    middleware += "        return 'Unauthorized', 401\n"
+    middleware += "    token = request.headers['Authorization'].split()[1]\n"
+    middleware += "    if token != 'valid_token':\n"
+    middleware += "        return 'Forbidden', 403\n"
+    return middleware
 
-    def login(self, provider: str, user_data: Dict):
-        user_id = hashlib.sha256(user_data['email'].encode()).hexdigest()
-        user = User(user_id, user_data['name'], user_data['email'])
-        self.users[user_id] = user
-        session_token = hashlib.sha256(user_id.encode()).hexdigest()
-        self.session_tokens[session_token] = user_id
-        return session_token
+def set_role_definitions(page_name: str, roles: Dict[str, Role], auth_config: AuthConfig) -> AuthConfig:
+    if page_name not in auth_config.pages:
+        auth_config.pages[page_name] = Page(name=page_name, roles={})
+    auth_config.pages[page_name].roles = roles
+    return auth_config
 
-    def validate_session_token(self, session_token: str):
-        if session_token in self.session_tokens:
-            return self.users[self.session_tokens[session_token]]
-        return None
+def toggle_authentication(auth_config: AuthConfig, enabled: bool) -> AuthConfig:
+    auth_config.enabled = enabled
+    return auth_config

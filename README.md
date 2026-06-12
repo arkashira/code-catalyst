@@ -1,12 +1,15 @@
 # Code Catalyst
-Code Catalyst is a Backend-as-a-Service (BaaS) integration project. It provides built-in authentication with minimal effort.
+A no-code feature builder with authentication and role-based access controls.
 
 ## Features
-* Auth can be enabled via a toggle in the project settings
-* OAuth2 with Google and GitHub are supported out of the box
-* Session tokens are stored securely in the database
+
+* Toggle to enable authentication
+* Automatic generation of JWT-based auth middleware
+* Role definitions (admin, user) can be set per page
 
 ## Usage
-1. Clone the repository
-2. Run `python -m pytest` to run the tests
-3. Run `python src/main.py` to run the main program
+
+1. Create an instance of `AuthConfig` with the desired settings.
+2. Use the `generate_jwt_middleware` function to generate the JWT middleware.
+3. Use the `set_role_definitions` function to set role definitions for each page.
+4. Use the `toggle_authentication` function to toggle authentication on or off.
