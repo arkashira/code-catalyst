@@ -1,1 +1,1 @@
-# No dependencies required for this project.
+# No dependencies required

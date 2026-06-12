@@ -1,34 +1,30 @@
-from src.auth import Auth, Role, User
-import pytest
+from auth import Auth, User
 
-def test_add_role():
+def test_enable_auth():
     auth = Auth()
-    role = Role("admin", ["read", "write"])
-    auth.add_role(role)
-    assert role.name in auth.roles
+    auth.enable_auth(True)
+    assert auth.db['auth_enabled']
 
-def test_add_user():
+def test_authenticate_google():
     auth = Auth()
-    role = Role("admin", ["read", "write"])
-    auth.add_role(role)
-    user = User("john", role)
-    auth.add_user(user)
-    assert user.username in auth.users
+    user = auth.authenticate('google', 'token123')
+    assert user
+    assert user.username == 'john_doe'
 
-def test_generate_jwt():
+def test_authenticate_github():
     auth = Auth()
-    role = Role("admin", ["read", "write"])
-    auth.add_role(role)
-    user = User("john", role)
-    auth.add_user(user)
-    jwt = auth.generate_jwt("john")
-    assert jwt is not None
+    user = auth.authenticate('github', 'token456')
+    assert user
+    assert user.username == 'john_doe'
 
-def test_authenticate():
+def test_validate_session():
     auth = Auth()
-    role = Role("admin", ["read", "write"])
-    auth.add_role(role)
-    user = User("john", role)
-    auth.add_user(user)
-    jwt = auth.generate_jwt("john")
-    assert auth.authenticate(jwt)
+    user = auth.authenticate('google', 'token123')
+    validated_user = auth.validate_session('token123')
+    assert validated_user
+    assert validated_user.username == 'john_doe'
+
+def test_invalid_provider():
+    auth = Auth()
+    user = auth.authenticate('facebook', 'token789')
+    assert user is None

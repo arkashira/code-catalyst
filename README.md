@@ -1,10 +1,16 @@
-# Code Catalyst – Analytics Dashboard
-A minimal, pure‑Python analytics engine that records page views, session durations, and feature usage, and exposes a dashboard that aggregates metrics over the last 5 minutes.
+# Code Catalyst
+
+A minimal implementation of Backend-as-a-Service (BaaS) with built-in authentication.
 
 ## Features
-- **Page Views** – Count of page views in the last 5 minutes.
-- **Session Duration** – Average session duration in seconds over the last 5 minutes.
-- **Feature Usage** – Count of each feature usage in the last 5 minutes.
-All data is stored in an in‑memory time‑series database, making it suitable for quick prototyping or unit testing.
+
+* Authentication via Google and GitHub
+* Session tokens stored securely in the database
+* Auth can be enabled via a toggle in the project settings
 
 ## Usage
+
+1. Create an instance of the `Auth` class
+2. Enable authentication using the `enable_auth` method
+3. Authenticate with a provider using the `authenticate` method
+4. Validate a session token using the `validate_session` method

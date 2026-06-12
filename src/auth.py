@@ -1,56 +1,47 @@
 import json
 from dataclasses import dataclass
-from typing import List, Dict
-
-@dataclass
-class Role:
-    """Simple role definition."""
-    name: str
-    permissions: List[str]
+from typing import Optional
 
 @dataclass
 class User:
-    """User linked to a Role."""
+    id: int
     username: str
-    role: Role
+    email: str
 
 class Auth:
-    """Very small in‑memory auth manager."""
-    def __init__(self) -> None:
-        self.users: Dict[str, User] = {}
-        self.roles: Dict[str, Role] = {}
+    def __init__(self, db_file: str = 'auth.db'):
+        self.db_file = db_file
+        self.load_db()
 
-    # ---------------------------------------------------------------------
-    # Role handling
-    # ---------------------------------------------------------------------
-    def add_role(self, role: Role) -> None:
-        """Register a role by its name."""
-        self.roles[role.name] = role
-
-    # ---------------------------------------------------------------------
-    # User handling
-    # ---------------------------------------------------------------------
-    def add_user(self, user: User) -> None:
-        """Register a user."""
-        self.users[user.username] = user
-
-    # ---------------------------------------------------------------------
-    # Token helpers (very naive JWT stand‑in)
-    # ---------------------------------------------------------------------
-    def generate_jwt(self, username: str) -> str | None:
-        """Return a JSON string that mimics a JWT payload."""
-        user = self.users.get(username)
-        if user:
-            return json.dumps({"username": username, "role": user.role.name})
-        return None
-
-    def authenticate(self, jwt: str) -> bool:
-        """Validate the supplied JWT‑like string."""
+    def load_db(self):
         try:
-            payload = json.loads(jwt)
-            username = payload["username"]
-            role_name = payload["role"]
-            user = self.users.get(username)
-            return bool(user and user.role.name == role_name)
-        except (json.JSONDecodeError, KeyError):
-            return False
+            with open(self.db_file, 'r') as f:
+                self.db = json.load(f)
+        except FileNotFoundError:
+            self.db = {}
+
+    def save_db(self):
+        with open(self.db_file, 'w') as f:
+            json.dump(self.db, f)
+
+    def enable_auth(self, enabled: bool):
+        self.db['auth_enabled'] = enabled
+        self.save_db()
+
+    def authenticate(self, provider: str, token: str) -> Optional[User]:
+        if provider not in ['google', 'github']:
+            return None
+        # Simulate authentication with a dummy user
+        user = User(1, 'john_doe', 'john@example.com')
+        self.db['session_tokens'] = self.db.get('session_tokens', {})
+        self.db['session_tokens'][token] = user.__dict__
+        self.save_db()
+        return user
+
+    def validate_session(self, token: str) -> Optional[User]:
+        if 'session_tokens' not in self.db:
+            return None
+        user_data = self.db['session_tokens'].get(token)
+        if user_data:
+            return User(**user_data)
+        return None
