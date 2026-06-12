@@ -1,39 +1,56 @@
 import json
 from dataclasses import dataclass
-from typing import Dict
+from typing import List, Dict
 
 @dataclass
 class Role:
+    """Simple role definition."""
     name: str
-    permissions: Dict[str, bool]
+    permissions: List[str]
 
 @dataclass
-class Page:
-    name: str
-    roles: Dict[str, Role]
+class User:
+    """User linked to a Role."""
+    username: str
+    role: Role
 
-@dataclass
-class AuthConfig:
-    enabled: bool
-    pages: Dict[str, Page]
+class Auth:
+    """Very small in‑memory auth manager."""
+    def __init__(self) -> None:
+        self.users: Dict[str, User] = {}
+        self.roles: Dict[str, Role] = {}
 
-def generate_jwt_middleware(auth_config: AuthConfig) -> str:
-    if not auth_config.enabled:
-        return ""
-    middleware = "def jwt_middleware(request):\n"
-    middleware += "    if not request.headers.get('Authorization'):\n"
-    middleware += "        return 'Unauthorized', 401\n"
-    middleware += "    token = request.headers['Authorization'].split()[1]\n"
-    middleware += "    if token != 'valid_token':\n"
-    middleware += "        return 'Forbidden', 403\n"
-    return middleware
+    # ---------------------------------------------------------------------
+    # Role handling
+    # ---------------------------------------------------------------------
+    def add_role(self, role: Role) -> None:
+        """Register a role by its name."""
+        self.roles[role.name] = role
 
-def set_role_definitions(page_name: str, roles: Dict[str, Role], auth_config: AuthConfig) -> AuthConfig:
-    if page_name not in auth_config.pages:
-        auth_config.pages[page_name] = Page(name=page_name, roles={})
-    auth_config.pages[page_name].roles = roles
-    return auth_config
+    # ---------------------------------------------------------------------
+    # User handling
+    # ---------------------------------------------------------------------
+    def add_user(self, user: User) -> None:
+        """Register a user."""
+        self.users[user.username] = user
 
-def toggle_authentication(auth_config: AuthConfig, enabled: bool) -> AuthConfig:
-    auth_config.enabled = enabled
-    return auth_config
+    # ---------------------------------------------------------------------
+    # Token helpers (very naive JWT stand‑in)
+    # ---------------------------------------------------------------------
+    def generate_jwt(self, username: str) -> str | None:
+        """Return a JSON string that mimics a JWT payload."""
+        user = self.users.get(username)
+        if user:
+            return json.dumps({"username": username, "role": user.role.name})
+        return None
+
+    def authenticate(self, jwt: str) -> bool:
+        """Validate the supplied JWT‑like string."""
+        try:
+            payload = json.loads(jwt)
+            username = payload["username"]
+            role_name = payload["role"]
+            user = self.users.get(username)
+            return bool(user and user.role.name == role_name)
+        except (json.JSONDecodeError, KeyError):
+            return False
