@@ -1,13 +1,12 @@
+import pytest
 from src.analytics import Analytics
 from src.dashboard import Dashboard
 
-def main():
+def test_main():
     analytics = Analytics()
-    dashboard = Dashboard(analytics)
     analytics.track('page_view', 'home')
     analytics.track('click', 'button')
+    dashboard = Dashboard(analytics)
     metrics = dashboard.get_realtime_metrics()
-    print(metrics)
-
-if __name__ == '__main__':
-    main()
+    assert metrics['page_views'] == 1
+    assert metrics['clicks'] == 1

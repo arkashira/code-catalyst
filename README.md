@@ -1,12 +1,7 @@
-# Onboarding Process
+# code-catalyst
 
-This project provides an interactive onboarding process that guides founders through the platform's features and functionality.
+As a founder, I want my deployed MVP to have built-in analytics, so I can validate product-market fit.
 
 ## Usage
-
-1. Run the onboarding process using `python -m src.onboarding`.
-2. Follow the prompts to complete the onboarding process.
-
-## Testing
-
-Run the tests using `python -m pytest`.
+1. Run `python src/main.py` to see the real-time metrics.
+2. Use `pytest` to run the tests: `pytest tests/`
