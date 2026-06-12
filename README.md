@@ -1,12 +1,12 @@
-# MVP Builder
+# Onboarding Process
 
-A drag-and-drop interface to add pages and components for designing MVP layouts.
+This project provides an interactive onboarding process that guides founders through the platform's features and functionality.
 
 ## Usage
 
-1. Create a new instance of the `MVPBuilder` class.
-2. Add pages using the `add_page` method.
-3. Add components to pages using the `add_component` method.
-4. Reorder components on a page using the `reorder_components` method.
-5. Persist the layout to a JSON file using the `persist` method.
-6. Preview the layout using the `preview` method.
+1. Run the onboarding process using `python -m src.onboarding`.
+2. Follow the prompts to complete the onboarding process.
+
+## Testing
+
+Run the tests using `python -m pytest`.

@@ -1,27 +1,32 @@
-import time
-from dataclasses import dataclass, field
+import json
+from dataclasses import dataclass
 from typing import List
 
 @dataclass
-class OnboardingStep:
+class Feature:
     name: str
-    duration: float  # seconds to simulate
+    description: str
 
-@dataclass
-class OnboardingManager:
-    steps: List[OnboardingStep] = field(default_factory=lambda: [
-        OnboardingStep("Create Account", 0.1),
-        OnboardingStep("Verify Email", 0.1),
-        OnboardingStep("Set Up Profile", 0.1),
-    ])
+class OnboardingProcess:
+    def __init__(self):
+        self.features = [
+            Feature("Dashboard", "Overview of the platform"),
+            Feature("Settings", "Configure your account"),
+            Feature("Support", "Get help when you need it"),
+        ]
 
-    def complete_onboarding(self) -> float:
-        """
-        Simulate completing the onboarding process.
-        Returns the total time taken in seconds.
-        """
-        start = time.time()
-        for step in self.steps:
-            time.sleep(step.duration)
-        end = time.time()
-        return end - start
+    def start_onboarding(self):
+        print("Welcome to the onboarding process!")
+        for feature in self.features:
+            print(f"Feature: {feature.name} - {feature.description}")
+            input("Press Enter to continue...")
+        print("Onboarding complete!")
+
+    def get_features(self):
+        return self.features
+
+    def get_feature_by_name(self, name: str):
+        for feature in self.features:
+            if feature.name == name:
+                return feature
+        return None
