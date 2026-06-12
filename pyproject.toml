@@ -3,7 +3,7 @@ requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry]
-name = "code-catalyst"
+name = "ab-testing"
 version = "0.1.0"
 description = ""
 

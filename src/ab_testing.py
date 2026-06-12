@@ -1,55 +1,47 @@
 import json
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import List
 
 @dataclass
-class Variant:
+class Version:
     name: str
-    traffic_ratio: int
+    parameters: dict
 
 @dataclass
-class Page:
+class Test:
     name: str
-    variants: List[Variant]
+    versions: List[Version]
+    target_audience: str
+    results: dict
 
 class ABTesting:
     def __init__(self):
-        self.pages = {}
+        self.tests = []
 
-    def add_page(self, page: Page):
-        self.pages[page.name] = page
+    def create_version(self, name, parameters):
+        return Version(name, parameters)
 
-    def split_traffic(self, page_name: str):
-        page = self.pages.get(page_name)
-        if page:
-            total_ratio = sum(variant.traffic_ratio for variant in page.variants)
-            traffic_split = {variant.name: variant.traffic_ratio / total_ratio for variant in page.variants}
-            return traffic_split
-        return None
+    def create_test(self, name, versions, target_audience):
+        test = Test(name, versions, target_audience, {})
+        self.tests.append(test)
+        return test
 
-    def display_results(self, page_name: str, results: Dict[str, Dict[str, int]]):
-        page = self.pages.get(page_name)
-        if page:
-            print(f"Results for page {page_name}:")
-            for variant in page.variants:
-                ctr = results.get(variant.name, {}).get("CTR", 0)
-                conversion = results.get(variant.name, {}).get("conversion", 0)
-                print(f"Variant {variant.name}: CTR={ctr}, conversion={conversion}")
+    def run_test(self, test):
+        # Simulate running the test
+        test.results = {
+            test.versions[0].name: 50,
+            test.versions[1].name: 50
+        }
+
+    def view_results(self, test):
+        return test.results
+
+    def compare_results(self, test):
+        version1, version2 = test.versions
+        results = test.results
+        if results[version1.name] > results[version2.name]:
+            return f"{version1.name} performs better"
+        elif results[version1.name] < results[version2.name]:
+            return f"{version2.name} performs better"
         else:
-            print("Page not found")
-
-def main():
-    ab_testing = ABTesting()
-    page = Page("example", [Variant("A", 1), Variant("B", 1), Variant("C", 1)])
-    ab_testing.add_page(page)
-    traffic_split = ab_testing.split_traffic("example")
-    print("Traffic split:", traffic_split)
-    results = {
-        "A": {"CTR": 10, "conversion": 5},
-        "B": {"CTR": 15, "conversion": 10},
-        "C": {"CTR": 8, "conversion": 3}
-    }
-    ab_testing.display_results("example", results)
-
-if __name__ == "__main__":
-    main()
+            return "Both versions perform equally"

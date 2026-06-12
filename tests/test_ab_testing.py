@@ -1,32 +1,42 @@
-from ab_testing import ABTesting, Page, Variant
+from ab_testing import ABTesting, Version, Test
 
-def test_add_page():
+def test_create_version():
     ab_testing = ABTesting()
-    page = Page("example", [Variant("A", 1), Variant("B", 1), Variant("C", 1)])
-    ab_testing.add_page(page)
-    assert page.name in ab_testing.pages
+    version = ab_testing.create_version("Version 1", {"param1": "value1"})
+    assert version.name == "Version 1"
+    assert version.parameters == {"param1": "value1"}
 
-def test_split_traffic():
+def test_create_test():
     ab_testing = ABTesting()
-    page = Page("example", [Variant("A", 1), Variant("B", 1), Variant("C", 1)])
-    ab_testing.add_page(page)
-    traffic_split = ab_testing.split_traffic("example")
-    assert traffic_split == {"A": 1/3, "B": 1/3, "C": 1/3}
+    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
+    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
+    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
+    assert test.name == "Test 1"
+    assert test.versions == [version1, version2]
+    assert test.target_audience == "Target Audience"
 
-def test_display_results():
+def test_run_test():
     ab_testing = ABTesting()
-    page = Page("example", [Variant("A", 1), Variant("B", 1), Variant("C", 1)])
-    ab_testing.add_page(page)
-    results = {
-        "A": {"CTR": 10, "conversion": 5},
-        "B": {"CTR": 15, "conversion": 10},
-        "C": {"CTR": 8, "conversion": 3}
-    }
-    ab_testing.display_results("example", results)
+    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
+    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
+    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
+    ab_testing.run_test(test)
+    assert test.results == {"Version 1": 50, "Version 2": 50}
 
-def test_traffic_split_custom_ratio():
+def test_view_results():
     ab_testing = ABTesting()
-    page = Page("example", [Variant("A", 2), Variant("B", 3), Variant("C", 1)])
-    ab_testing.add_page(page)
-    traffic_split = ab_testing.split_traffic("example")
-    assert traffic_split == {"A": 2/6, "B": 3/6, "C": 1/6}
+    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
+    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
+    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
+    ab_testing.run_test(test)
+    results = ab_testing.view_results(test)
+    assert results == {"Version 1": 50, "Version 2": 50}
+
+def test_compare_results():
+    ab_testing = ABTesting()
+    version1 = ab_testing.create_version("Version 1", {"param1": "value1"})
+    version2 = ab_testing.create_version("Version 2", {"param2": "value2"})
+    test = ab_testing.create_test("Test 1", [version1, version2], "Target Audience")
+    test.results = {"Version 1": 60, "Version 2": 40}
+    comparison = ab_testing.compare_results(test)
+    assert comparison == "Version 1 performs better"
