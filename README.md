@@ -1,24 +1,10 @@
-# Code Catalyst
-
-Code Catalyst is a project that provides basic usage analytics, A/B testing experiments, and notifications for significant changes in user behavior.
+# Code Catalyst – Analytics Dashboard
+A minimal, pure‑Python analytics engine that records page views, session durations, and feature usage, and exposes a dashboard that aggregates metrics over the last 5 minutes.
 
 ## Features
-
-* Track page views and user engagement
-* Create and update A/B testing experiments
-* Send notifications for significant changes in user behavior
-
-## Requirements
-
-* Python 3.9 or later
-* pytest 7.1.2 or later
-
-## Installation
-
-1. Install the required dependencies using pip: `pip install -r requirements.txt`
-2. Run the tests using pytest: `pytest tests`
+- **Page Views** – Count of page views in the last 5 minutes.
+- **Session Duration** – Average session duration in seconds over the last 5 minutes.
+- **Feature Usage** – Count of each feature usage in the last 5 minutes.
+All data is stored in an in‑memory time‑series database, making it suitable for quick prototyping or unit testing.
 
 ## Usage
-
-1. Import the Analytics, ABTesting, and NotificationSystem classes from the src/analytics module
-2. Create instances of the classes and use their methods to track page views, calculate user engagement, create and update A/B testing experiments, and send notifications
