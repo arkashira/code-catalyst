@@ -1,26 +1,38 @@
-from onboarding import OnboardingProcess, Feature
+from onboarding import OnboardingProcess, OnboardingStep
 
-def test_start_onboarding():
+def test_onboarding_process():
     onboarding = OnboardingProcess()
-    # Test that the onboarding process covers key features and functionality
-    assert len(onboarding.get_features()) == 3
+    assert not onboarding.is_onboarding_completed()
 
-def test_get_features():
+def test_skip_step():
     onboarding = OnboardingProcess()
-    features = onboarding.get_features()
-    assert len(features) == 3
-    assert features[0].name == "Dashboard"
-    assert features[1].name == "Settings"
-    assert features[2].name == "Support"
+    onboarding.skip_step(0)
+    assert onboarding.steps[0].completed
 
-def test_get_feature_by_name():
+def test_complete_step():
     onboarding = OnboardingProcess()
-    feature = onboarding.get_feature_by_name("Dashboard")
-    assert feature is not None
-    assert feature.name == "Dashboard"
-    assert feature.description == "Overview of the platform"
+    onboarding.complete_step(0)
+    assert onboarding.steps[0].completed
 
-def test_get_feature_by_name_not_found():
+def test_is_onboarding_completed():
     onboarding = OnboardingProcess()
-    feature = onboarding.get_feature_by_name("Non-existent feature")
-    assert feature is None
+    for i in range(len(onboarding.steps)):
+        onboarding.complete_step(i)
+    assert onboarding.is_onboarding_completed()
+
+def test_get_next_step():
+    onboarding = OnboardingProcess()
+    assert onboarding.get_next_step() == 0
+    onboarding.complete_step(0)
+    assert onboarding.get_next_step() == 1
+
+def test_to_json():
+    onboarding = OnboardingProcess()
+    json_str = onboarding.to_json()
+    assert json_str is not None
+
+def test_from_json():
+    onboarding = OnboardingProcess()
+    json_str = onboarding.to_json()
+    new_onboarding = OnboardingProcess.from_json(json_str)
+    assert new_onboarding.steps[0].description == onboarding.steps[0].description
