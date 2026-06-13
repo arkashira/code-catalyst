@@ -1,42 +1,36 @@
 import json
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 @dataclass
-class TourStep:
-    description: str
-    next_button: str
+class Feedback:
+    prototype_url: str
+    user_feedback: str
 
 class CodeCatalyst:
     def __init__(self):
-        self.tour_steps = [
-            TourStep("Welcome to Code Catalyst! This is the main dashboard.", "Next"),
-            TourStep("Here you can view your projects and navigate to different sections.", "Next"),
-            TourStep("This is the settings menu where you can replay the tour or skip it.", "Finish")
-        ]
-        self.current_step = 0
-        self.settings = {"tour_skipped": False}
+        self.prototypes = {}
+        self.feedback = {}
 
-    def start_tour(self):
-        if self.settings["tour_skipped"]:
-            return "Tour skipped"
-        return self.get_current_step()
+    def share_prototype(self, prototype_id, prototype_url):
+        self.prototypes[prototype_id] = prototype_url
+        return f"{prototype_url}?prototype_id={prototype_id}"
 
-    def get_current_step(self):
-        if self.current_step < len(self.tour_steps):
-            return self.tour_steps[self.current_step]
-        return "Tour finished"
+    def collect_feedback(self, prototype_id, user_feedback):
+        if prototype_id not in self.feedback:
+            self.feedback[prototype_id] = []
+        self.feedback[prototype_id].append(Feedback(self.prototypes[prototype_id], user_feedback))
 
-    def next_step(self):
-        if self.current_step < len(self.tour_steps) - 1:
-            self.current_step += 1
-            return self.get_current_step()
-        return "Tour finished"
+    def view_feedback(self, prototype_id):
+        return self.feedback.get(prototype_id, [])
 
-    def skip_tour(self):
-        self.settings["tour_skipped"] = True
-        return "Tour skipped"
-
-    def replay_tour(self):
-        self.settings["tour_skipped"] = False
-        self.current_step = 0
-        return self.get_current_step()
+    def analyze_feedback(self, prototype_id):
+        feedback = self.view_feedback(prototype_id)
+        if not feedback:
+            return {}
+        analysis = {}
+        for f in feedback:
+            if f.user_feedback not in analysis:
+                analysis[f.user_feedback] = 0
+            analysis[f.user_feedback] += 1
+        return analysis

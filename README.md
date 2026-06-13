@@ -1,9 +1,9 @@
 # Code Catalyst
-
-A rapid prototyping platform for SaaS ideas.
+A tool for sharing prototypes and collecting feedback.
 
 ## Usage
-
-1. Create a new project: `project_manager.create_project("My Project")`
-2. Add a new page to the project: `project_manager.add_page("My Project", "My Page")`
-3. Add a UI component to the page: `project_manager.add_component("My Project", "My Page", "My Component")`
+1. Create a new instance of the `CodeCatalyst` class.
+2. Share a prototype using the `share_prototype` method.
+3. Collect feedback using the `collect_feedback` method.
+4. View feedback using the `view_feedback` method.
+5. Analyze feedback using the `analyze_feedback` method.
