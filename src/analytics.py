@@ -1,73 +1,64 @@
-import datetime
-from collections import defaultdict
+import json
+import time
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from datetime import datetime
+from typing import List
 
 @dataclass
-class DataPoint:
-    timestamp: datetime.datetime
-    value: float
+class Event:
+    timestamp: str
+    event_type: str
+    data: dict
 
-class InMemoryTSDB:
-    """ Very small in-memory time-series database. Stores data points per metric name. """
-    def __init__(self) -> None:
-        self._store: Dict[str, List[DataPoint]] = defaultdict(list)
+class Analytics:
+    def __init__(self):
+        self.events = []
 
-    def add(self, metric: str, timestamp: datetime.datetime, value: float) -> None:
-        """ Add a data point to the database. """
-        self._store[metric].append(DataPoint(timestamp, value))
+    def add_event(self, event_type: str, data: dict):
+        event = Event(timestamp=datetime.now().isoformat(), event_type=event_type, data=data)
+        self.events.append(event)
 
-    def query(self, metric: str, start: datetime.datetime, end: datetime.datetime) -> List[DataPoint]:
-        """ Return all data points for a metric between start and end (inclusive). """
-        return [dp for dp in self._store.get(metric, []) if start <= dp.timestamp <= end]
+    def get_page_views(self):
+        return len([event for event in self.events if event.event_type == 'page_view'])
 
-class AnalyticsCollector:
-    """ Collects events and writes them to the TSDB. """
-    def __init__(self, tsdb: InMemoryTSDB) -> None:
-        self.tsdb = tsdb
+    def get_session_duration(self):
+        sessions = {}
+        for event in self.events:
+            if event.event_type == 'session_start':
+                sessions[event.data['session_id']] = event.timestamp
+            elif event.event_type == 'session_end':
+                start_time = sessions.get(event.data['session_id'])
+                if start_time:
+                    duration = (datetime.fromisoformat(event.timestamp) - datetime.fromisoformat(start_time)).total_seconds()
+                    yield duration
 
-    def record_page_view(self, page: str, timestamp: datetime.datetime) -> None:
-        """ Record a page view event. """
-        self.tsdb.add("page_view", timestamp, 1)
+    def get_conversion_events(self):
+        return len([event for event in self.events if event.event_type == 'conversion'])
 
-    def record_session(self, duration_seconds: float, timestamp: datetime.datetime) -> None:
-        """ Record a session duration event. """
-        self.tsdb.add("session_duration", timestamp, duration_seconds)
+    def export_to_csv(self):
+        with open('analytics.csv', 'w') as f:
+            f.write('timestamp,event_type,data\n')
+            for event in self.events:
+                f.write(f"{event.timestamp},{event.event_type},{json.dumps(event.data)}\n")
 
-    def record_feature_use(self, feature: str, timestamp: datetime.datetime) -> None:
-        """ Record a feature usage event. """
-        # Store feature name as part of metric key
-        metric = f"feature_use:{feature}"
-        self.tsdb.add(metric, timestamp, 1)
+def main():
+    analytics = Analytics()
+    while True:
+        # Simulate events
+        analytics.add_event('page_view', {'page': 'home'})
+        analytics.add_event('session_start', {'session_id': '123'})
+        analytics.add_event('conversion', {'product': 'A'})
+        analytics.add_event('session_end', {'session_id': '123'})
 
-class Dashboard:
-    """ Provides aggregated metrics for the last N minutes. """
-    def __init__(self, tsdb: InMemoryTSDB, window_minutes: int = 5) -> None:
-        self.tsdb = tsdb
-        self.window = datetime.timedelta(minutes=window_minutes)
+        # Display dashboard
+        print(f"Page views: {analytics.get_page_views()}")
+        print(f"Session duration: {list(analytics.get_session_duration())}")
+        print(f"Conversion events: {analytics.get_conversion_events()}")
 
-    def get_metrics(self, current_time: datetime.datetime) -> Dict[str, object]:
-        """ Return aggregated metrics for the last `window_minutes` minutes. """
-        start_time = current_time - self.window
-        metrics: Dict[str, object] = {}
-        # Page views count
-        page_views = self.tsdb.query("page_view", start_time, current_time)
-        metrics["page_views"] = len(page_views)
-        # Average session duration
-        sessions = self.tsdb.query("session_duration", start_time, current_time)
-        if sessions:
-            avg_duration = sum(dp.value for dp in sessions) / len(sessions)
-        else:
-            avg_duration = 0.0
-        metrics["avg_session_duration"] = avg_duration
-        # Feature usage counts
-        feature_counts: Dict[str, int] = defaultdict(int)
-        for metric_name in list(self.tsdb._store.keys()):
-            if metric_name.startswith("feature_use:"):
-                feature = metric_name.split(":", 1)[1]
-                data_points = self.tsdb.query(metric_name, start_time, current_time)
-                count = len(data_points)
-                if count > 0:
-                    feature_counts[feature] = count
-        metrics["feature_usage"] = dict(feature_counts)
-        return metrics
+        # Export to CSV
+        analytics.export_to_csv()
+
+        time.sleep(30)
+
+if __name__ == '__main__':
+    main()
