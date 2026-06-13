@@ -1,74 +1,57 @@
 import json
+import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List
+from typing import Dict
 
 @dataclass
-class Event:
-    timestamp: datetime
-    event_type: str
-    data: dict
+class FeatureUsage:
+    feature_name: str
+    usage_count: int
 
-class Analytics:
-    def __init__(self):
-        self.events = []
+@dataclass
+class AnalyticsData:
+    daily_active_users: int
+    feature_usage: Dict[str, int]
+    retention_curves: Dict[str, int]
 
-    def track(self, event_type: str, data: dict):
-        event = Event(timestamp=datetime.now(), event_type=event_type, data=data)
-        self.events.append(event)
+class AnalyticsToolkit:
+    def __init__(self, db_name: str):
+        self.conn = sqlite3.connect(db_name)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS analytics
+            (date TEXT, feature_name TEXT, usage_count INTEGER)
+        """)
+        self.conn.commit()
 
-    def get_daily_views(self):
-        daily_views = {}
-        for event in self.events:
-            if event.event_type == 'page_view':
-                date = event.timestamp.date()
-                if date in daily_views:
-                    daily_views[date] += 1
-                else:
-                    daily_views[date] = 1
-        return daily_views
+    def store_analytics_data(self, data: AnalyticsData):
+        self.cursor.execute("""
+            INSERT INTO analytics (date, feature_name, usage_count)
+            VALUES (?, ?, ?)
+        """, (datetime.now().strftime("%Y-%m-%d"), "daily_active_users", data.daily_active_users))
+        for feature, usage in data.feature_usage.items():
+            self.cursor.execute("""
+                INSERT INTO analytics (date, feature_name, usage_count)
+                VALUES (?, ?, ?)
+            """, (datetime.now().strftime("%Y-%m-%d"), feature, usage))
+        self.conn.commit()
 
-    def get_weekly_views(self):
-        weekly_views = {}
-        for event in self.events:
-            if event.event_type == 'page_view':
-                week = event.timestamp.isocalendar()[1]
-                if week in weekly_views:
-                    weekly_views[week] += 1
-                else:
-                    weekly_views[week] = 1
-        return weekly_views
+    def get_analytics_data(self) -> AnalyticsData:
+        self.cursor.execute("""
+            SELECT feature_name, usage_count
+            FROM analytics
+            WHERE date = ?
+        """, (datetime.now().strftime("%Y-%m-%d"),))
+        rows = self.cursor.fetchall()
+        daily_active_users = 0
+        feature_usage = {}
+        for row in rows:
+            if row[0] == "daily_active_users":
+                daily_active_users = row[1]
+            else:
+                feature_usage[row[0]] = row[1]
+        return AnalyticsData(daily_active_users, feature_usage, {})
 
-    def get_button_clicks(self):
-        button_clicks = {}
-        for event in self.events:
-            if event.event_type == 'button_click':
-                button_id = event.data.get('button_id')
-                if button_id in button_clicks:
-                    button_clicks[button_id] += 1
-                else:
-                    button_clicks[button_id] = 1
-        return button_clicks
-
-    def get_form_submissions(self):
-        form_submissions = {}
-        for event in self.events:
-            if event.event_type == 'form_submission':
-                form_id = event.data.get('form_id')
-                if form_id in form_submissions:
-                    form_submissions[form_id] += 1
-                else:
-                    form_submissions[form_id] = 1
-        return form_submissions
-
-    def get_dashboard_data(self):
-        daily_views = self.get_daily_views()
-        weekly_views = self.get_weekly_views()
-        button_clicks = self.get_button_clicks()
-        form_submissions = self.get_form_submissions()
-        return {
-            'daily_views': daily_views,
-            'weekly_views': weekly_views,
-            'button_clicks': button_clicks,
-            'form_submissions': form_submissions
-        }
+    def close(self):
+        self.conn.close()
