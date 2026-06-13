@@ -1,47 +1,99 @@
-from code_catalyst import CodeCatalyst, Feedback
+import pytest
 
-def test_share_prototype():
-    cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    shared_url = cc.share_prototype(prototype_id, prototype_url)
-    assert shared_url == f"{prototype_url}?id={prototype_id}"
+from code_catalyst import IdeaWizard, InMemoryDB, Idea
 
-def test_provide_feedback():
-    cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    cc.share_prototype(prototype_id, prototype_url)
-    user_feedback = "This is great!"
-    cc.provide_feedback(prototype_id, user_feedback)
-    feedback = cc.view_feedback(prototype_id)
-    assert len(feedback) == 1
-    assert feedback[0].prototype_url == prototype_url
-    assert feedback[0].user_feedback == user_feedback
 
-def test_view_feedback():
-    cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    cc.share_prototype(prototype_id, prototype_url)
-    user_feedback = "This is great!"
-    cc.provide_feedback(prototype_id, user_feedback)
-    feedback = cc.view_feedback(prototype_id)
-    assert len(feedback) == 1
-    assert feedback[0].prototype_url == prototype_url
-    assert feedback[0].user_feedback == user_feedback
+@pytest.fixture
+def wizard():
+    return IdeaWizard()
 
-def test_analyze_feedback():
-    cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    cc.share_prototype(prototype_id, prototype_url)
-    user_feedback1 = "This is great!"
-    user_feedback2 = "This is great!"
-    user_feedback3 = "This is bad!"
-    cc.provide_feedback(prototype_id, user_feedback1)
-    cc.provide_feedback(prototype_id, user_feedback2)
-    cc.provide_feedback(prototype_id, user_feedback3)
-    analysis = cc.analyze_feedback(prototype_id)
-    assert analysis[user_feedback1] == 2
-    assert analysis[user_feedback3] == 1
+
+@pytest.fixture
+def db():
+    return InMemoryDB()
+
+
+def test_validate_success(wizard):
+    payload = {
+        "product_name": "  MyApp  ",
+        "target_audience": "Developers",
+        "core_features": ["Feature A", "Feature B"],
+        "revenue_model": "Freemium",
+    }
+    idea = wizard.validate(payload)
+    assert isinstance(idea, Idea)
+    # Whitespace should be stripped
+    assert idea.product_name == "MyApp"
+    assert idea.core_features == ["Feature A", "Feature B"]
+
+
+def test_validate_missing_fields(wizard):
+    payload = {
+        "product_name": "App",
+        "target_audience": "Users",
+        # core_features omitted
+        "revenue_model": "Subscription",
+    }
+    with pytest.raises(ValueError) as exc:
+        wizard.validate(payload)
+    assert "Missing required fields" in str(exc.value)
+    assert "core_features" in str(exc.value)
+
+
+def test_validate_empty_string(wizard):
+    payload = {
+        "product_name": "   ",
+        "target_audience": "Users",
+        "core_features": ["Feature"],
+        "revenue_model": "Ads",
+    }
+    with pytest.raises(ValueError) as exc:
+        wizard.validate(payload)
+    assert "'product_name' must be a non‑empty string." in str(exc.value)
+
+
+def test_validate_core_features_edge_cases(wizard):
+    # Empty list
+    payload = {
+        "product_name": "App",
+        "target_audience": "Users",
+        "core_features": [],
+        "revenue_model": "Ads",
+    }
+    with pytest.raises(ValueError) as exc:
+        wizard.validate(payload)
+    assert "'core_features' must be a non‑empty list." in str(exc.value)
+
+    # List with empty string
+    payload["core_features"] = ["", "Feature"]
+    with pytest.raises(ValueError) as exc:
+        wizard.validate(payload)
+    assert "core_features[0] must be a non‑empty string." in str(exc.value)
+
+
+def test_process_submission_happy_path(wizard, db):
+    payload = {
+        "product_name": "App",
+        "target_audience": "Users",
+        "core_features": ["Feature"],
+        "revenue_model": "Ads",
+    }
+    idea = wizard.process_submission(payload, db)
+    assert isinstance(idea, Idea)
+    # Ensure it was stored
+    stored = db.all()
+    assert len(stored) == 1
+    assert stored[0] == idea
+
+
+def test_process_submission_invalid_data(wizard, db):
+    payload = {
+        "product_name": "App",
+        "target_audience": "Users",
+        "core_features": [],  # invalid
+        "revenue_model": "Ads",
+    }
+    with pytest.raises(ValueError):
+        wizard.process_submission(payload, db)
+    # DB must remain empty
+    assert db.all() == []
