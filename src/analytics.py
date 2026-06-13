@@ -1,12 +1,11 @@
 import json
-import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 @dataclass
 class Event:
-    timestamp: str
+    timestamp: datetime
     event_type: str
     data: dict
 
@@ -14,51 +13,62 @@ class Analytics:
     def __init__(self):
         self.events = []
 
-    def add_event(self, event_type: str, data: dict):
-        event = Event(timestamp=datetime.now().isoformat(), event_type=event_type, data=data)
+    def track(self, event_type: str, data: dict):
+        event = Event(timestamp=datetime.now(), event_type=event_type, data=data)
         self.events.append(event)
 
-    def get_page_views(self):
-        return len([event for event in self.events if event.event_type == 'page_view'])
-
-    def get_session_duration(self):
-        sessions = {}
+    def get_daily_views(self):
+        daily_views = {}
         for event in self.events:
-            if event.event_type == 'session_start':
-                sessions[event.data['session_id']] = event.timestamp
-            elif event.event_type == 'session_end':
-                start_time = sessions.get(event.data['session_id'])
-                if start_time:
-                    duration = (datetime.fromisoformat(event.timestamp) - datetime.fromisoformat(start_time)).total_seconds()
-                    yield duration
+            if event.event_type == 'page_view':
+                date = event.timestamp.date()
+                if date in daily_views:
+                    daily_views[date] += 1
+                else:
+                    daily_views[date] = 1
+        return daily_views
 
-    def get_conversion_events(self):
-        return len([event for event in self.events if event.event_type == 'conversion'])
+    def get_weekly_views(self):
+        weekly_views = {}
+        for event in self.events:
+            if event.event_type == 'page_view':
+                week = event.timestamp.isocalendar()[1]
+                if week in weekly_views:
+                    weekly_views[week] += 1
+                else:
+                    weekly_views[week] = 1
+        return weekly_views
 
-    def export_to_csv(self):
-        with open('analytics.csv', 'w') as f:
-            f.write('timestamp,event_type,data\n')
-            for event in self.events:
-                f.write(f"{event.timestamp},{event.event_type},{json.dumps(event.data)}\n")
+    def get_button_clicks(self):
+        button_clicks = {}
+        for event in self.events:
+            if event.event_type == 'button_click':
+                button_id = event.data.get('button_id')
+                if button_id in button_clicks:
+                    button_clicks[button_id] += 1
+                else:
+                    button_clicks[button_id] = 1
+        return button_clicks
 
-def main():
-    analytics = Analytics()
-    while True:
-        # Simulate events
-        analytics.add_event('page_view', {'page': 'home'})
-        analytics.add_event('session_start', {'session_id': '123'})
-        analytics.add_event('conversion', {'product': 'A'})
-        analytics.add_event('session_end', {'session_id': '123'})
+    def get_form_submissions(self):
+        form_submissions = {}
+        for event in self.events:
+            if event.event_type == 'form_submission':
+                form_id = event.data.get('form_id')
+                if form_id in form_submissions:
+                    form_submissions[form_id] += 1
+                else:
+                    form_submissions[form_id] = 1
+        return form_submissions
 
-        # Display dashboard
-        print(f"Page views: {analytics.get_page_views()}")
-        print(f"Session duration: {list(analytics.get_session_duration())}")
-        print(f"Conversion events: {analytics.get_conversion_events()}")
-
-        # Export to CSV
-        analytics.export_to_csv()
-
-        time.sleep(30)
-
-if __name__ == '__main__':
-    main()
+    def get_dashboard_data(self):
+        daily_views = self.get_daily_views()
+        weekly_views = self.get_weekly_views()
+        button_clicks = self.get_button_clicks()
+        form_submissions = self.get_form_submissions()
+        return {
+            'daily_views': daily_views,
+            'weekly_views': weekly_views,
+            'button_clicks': button_clicks,
+            'form_submissions': form_submissions
+        }
