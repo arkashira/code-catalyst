@@ -1,20 +1,14 @@
-from src.axentx_product.product import Product
-from src.axentx_product.portfolio import Portfolio
-from src.axentx_product.chain_playbook import ChainPlaybook
+from src.axentx_product.product import Product, get_winning_products
 
-def test_product():
-    product = Product("Test Product", 10.99)
-    assert product.get_price() == 10.99
-    assert product.get_name() == "Test Product"
+def test_get_winning_products():
+    product1 = Product("Product 1", 10)
+    product2 = Product("Product 2", 0)
+    product3 = Product("Product 3", 5)
 
-def test_portfolio():
-    portfolio = Portfolio()
-    product = Product("Test Product", 10.99)
-    portfolio.add_product(product)
-    assert len(portfolio.get_products()) == 1
+    products = [product1, product2, product3]
+    winning_products = get_winning_products(products)
 
-def test_chain_playbook():
-    chain_playbook = ChainPlaybook()
-    product = Product("Test Product", 10.99)
-    chain_playbook.add_product_to_portfolio(product)
-    assert len(chain_playbook.get_portfolio_products()) == 1
+    assert len(winning_products) == 2
+    assert product1 in winning_products
+    assert product3 in winning_products
+    assert product2 not in winning_products
