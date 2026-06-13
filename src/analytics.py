@@ -1,57 +1,37 @@
 import json
-import sqlite3
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict
+from datetime import datetime
 
 @dataclass
-class FeatureUsage:
-    feature_name: str
-    usage_count: int
+class UserInteraction:
+    page_view: int
+    click_through_rate: float
+    user_session: int
 
-@dataclass
-class AnalyticsData:
-    daily_active_users: int
-    feature_usage: Dict[str, int]
-    retention_curves: Dict[str, int]
+class Analytics:
+    def __init__(self):
+        self.interactions = []
 
-class AnalyticsToolkit:
-    def __init__(self, db_name: str):
-        self.conn = sqlite3.connect(db_name)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS analytics
-            (date TEXT, feature_name TEXT, usage_count INTEGER)
-        """)
-        self.conn.commit()
+    def add_interaction(self, interaction):
+        self.interactions.append(interaction)
 
-    def store_analytics_data(self, data: AnalyticsData):
-        self.cursor.execute("""
-            INSERT INTO analytics (date, feature_name, usage_count)
-            VALUES (?, ?, ?)
-        """, (datetime.now().strftime("%Y-%m-%d"), "daily_active_users", data.daily_active_users))
-        for feature, usage in data.feature_usage.items():
-            self.cursor.execute("""
-                INSERT INTO analytics (date, feature_name, usage_count)
-                VALUES (?, ?, ?)
-            """, (datetime.now().strftime("%Y-%m-%d"), feature, usage))
-        self.conn.commit()
+    def get_metrics(self):
+        total_page_views = sum(i.page_view for i in self.interactions)
+        total_click_through_rate = sum(i.click_through_rate for i in self.interactions) / len(self.interactions) if self.interactions else 0
+        total_user_sessions = sum(i.user_session for i in self.interactions)
+        return {
+            "page_views": total_page_views,
+            "click_through_rate": total_click_through_rate,
+            "user_sessions": total_user_sessions
+        }
 
-    def get_analytics_data(self) -> AnalyticsData:
-        self.cursor.execute("""
-            SELECT feature_name, usage_count
-            FROM analytics
-            WHERE date = ?
-        """, (datetime.now().strftime("%Y-%m-%d"),))
-        rows = self.cursor.fetchall()
-        daily_active_users = 0
-        feature_usage = {}
-        for row in rows:
-            if row[0] == "daily_active_users":
-                daily_active_users = row[1]
-            else:
-                feature_usage[row[0]] = row[1]
-        return AnalyticsData(daily_active_users, feature_usage, {})
+    def export_data(self):
+        data = [{"page_view": i.page_view, "click_through_rate": i.click_through_rate, "user_session": i.user_session} for i in self.interactions]
+        return json.dumps(data, indent=4)
 
-    def close(self):
-        self.conn.close()
+    def display_dashboard(self):
+        metrics = self.get_metrics()
+        print("Dashboard:")
+        print(f"Page Views: {metrics['page_views']}")
+        print(f"Click Through Rate: {metrics['click_through_rate']:.2f}")
+        print(f"User Sessions: {metrics['user_sessions']}")

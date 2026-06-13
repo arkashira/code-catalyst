@@ -1,20 +1,40 @@
-import pytest
-from src.analytics import AnalyticsToolkit, AnalyticsData
-from src.dashboard import Dashboard
+from analytics import Analytics, UserInteraction
 
-def test_analytics_toolkit():
-    analytics_toolkit = AnalyticsToolkit(":memory:")
-    analytics_data = AnalyticsData(100, {"feature1": 50, "feature2": 30}, {})
-    analytics_toolkit.store_analytics_data(analytics_data)
-    retrieved_data = analytics_toolkit.get_analytics_data()
-    assert retrieved_data.daily_active_users == 100
-    assert retrieved_data.feature_usage == {"feature1": 50, "feature2": 30}
+def test_add_interaction():
+    analytics = Analytics()
+    interaction = UserInteraction(1, 0.5, 1)
+    analytics.add_interaction(interaction)
+    assert len(analytics.interactions) == 1
 
-def test_dashboard():
-    analytics_toolkit = AnalyticsToolkit(":memory:")
-    dashboard = Dashboard(analytics_toolkit)
-    analytics_data = AnalyticsData(100, {"feature1": 50, "feature2": 30}, {})
-    analytics_toolkit.store_analytics_data(analytics_data)
-    dashboard_data = dashboard.get_dashboard_data()
-    assert dashboard_data.daily_active_users == 100
-    assert dashboard_data.feature_usage == {"feature1": 50, "feature2": 30}
+def test_get_metrics():
+    analytics = Analytics()
+    interaction1 = UserInteraction(1, 0.5, 1)
+    interaction2 = UserInteraction(2, 0.7, 2)
+    analytics.add_interaction(interaction1)
+    analytics.add_interaction(interaction2)
+    metrics = analytics.get_metrics()
+    assert metrics["page_views"] == 3
+    assert metrics["click_through_rate"] == 0.6
+    assert metrics["user_sessions"] == 3
+
+def test_export_data():
+    analytics = Analytics()
+    interaction1 = UserInteraction(1, 0.5, 1)
+    interaction2 = UserInteraction(2, 0.7, 2)
+    analytics.add_interaction(interaction1)
+    analytics.add_interaction(interaction2)
+    data = analytics.export_data()
+    assert data == '[\n    {\n        "page_view": 1,\n        "click_through_rate": 0.5,\n        "user_session": 1\n    },\n    {\n        "page_view": 2,\n        "click_through_rate": 0.7,\n        "user_session": 2\n    }\n]'
+
+def test_display_dashboard(capsys):
+    analytics = Analytics()
+    interaction1 = UserInteraction(1, 0.5, 1)
+    interaction2 = UserInteraction(2, 0.7, 2)
+    analytics.add_interaction(interaction1)
+    analytics.add_interaction(interaction2)
+    analytics.display_dashboard()
+    captured = capsys.readouterr()
+    assert "Dashboard:" in captured.out
+    assert "Page Views: 3" in captured.out
+    assert "Click Through Rate: 0.60" in captured.out
+    assert "User Sessions: 3" in captured.out
