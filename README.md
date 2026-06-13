@@ -1,8 +1,20 @@
-# Code Catalyst
-A project for automatic scaling based on traffic.
+# code-catalyst
+
+Generate a project skeleton from a product brief.
+
+## Features
+
+- Accept a JSON file or interactive form with:
+  - Product name
+  - Target users
+  - Core features
+  - Validation evidence
+- Generates a ready‑to‑code project structure:
+  - `src/` with a basic authentication module
+  - `src/db_schema.sql` with a sample SQLite schema
+  - `tests/` with a sample auth test
+  - `README.md` summarizing the product
+  - `docs/` placeholder for future documentation
+- Completes generation in under 5 seconds.
 
 ## Usage
-1. Create a `Deployment` object with a `ScalingConfig`.
-2. Call the `scale` method to adjust the pod count based on CPU usage.
-3. Use the `log_scaling_event` method to log scaling events.
-4. Convert the `Deployment` object to a dictionary using the `to_dict` method.
