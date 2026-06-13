@@ -1,17 +1,22 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import List, Dict
 
 @dataclass
-class DataModel:
+class Column:
     name: str
-    fields: List[str]
+    type: str
 
-class DataModelManager:
+@dataclass
+class Table:
+    name: str
+    columns: List[Column]
+
+class DataModel:
     def __init__(self):
-        self.data_models = {}
+        self.tables = []
 
-    def add_data_model(self, data_model: DataModel):
-        self.data_models[data_model.name] = data_model
+    def add_table(self, table: Table):
+        self.tables.append(table)
 
-    def get_data_models(self) -> Dict[str, DataModel]:
-        return self.data_models
+    def get_tables(self) -> List[Table]:
+        return self.tables
