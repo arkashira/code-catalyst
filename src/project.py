@@ -1,59 +1,40 @@
-import os
 import json
 from dataclasses import dataclass
-from argparse import ArgumentParser
+from datetime import datetime
+
+@dataclass
+class Page:
+    name: str
+    components: list
 
 @dataclass
 class Project:
     name: str
-    industry: str
-    core_feature: str
-    pricing_model: str
-    target_audience: str
+    pages: list
 
-def create_project(project: Project):
-    try:
-        os.mkdir(project.name)
-    except FileExistsError:
-        pass
-    try:
-        os.mkdir(os.path.join(project.name, 'src'))
-    except FileExistsError:
-        pass
-    try:
-        os.mkdir(os.path.join(project.name, 'tests'))
-    except FileExistsError:
-        pass
-    with open(os.path.join(project.name, 'README.md'), 'w') as f:
-        f.write(f'# {project.name}\n')
-        f.write(f'Industry: {project.industry}\n')
-        f.write(f'Core Feature: {project.core_feature}\n')
-        f.write(f'Pricing Model: {project.pricing_model}\n')
-        f.write(f'Target Audience: {project.target_audience}\n')
-    with open(os.path.join(project.name, 'github.json'), 'w') as f:
-        json.dump({
-            'name': project.name,
-            'description': f'{project.name} SaaS MVP project',
-            'keywords': [project.industry, project.core_feature],
-            'license': 'MIT'
-        }, f)
+class ProjectManager:
+    def __init__(self):
+        self.projects = {}
 
-def main():
-    parser = ArgumentParser()
-    parser.add_argument('--name', required=True)
-    parser.add_argument('--industry', required=True)
-    parser.add_argument('--core-feature', required=True)
-    parser.add_argument('--pricing-model', required=True)
-    parser.add_argument('--target-audience', required=True)
-    args = parser.parse_args()
-    project = Project(
-        name=args.name,
-        industry=args.industry,
-        core_feature=args.core_feature,
-        pricing_model=args.pricing_model,
-        target_audience=args.target_audience
-    )
-    create_project(project)
+    def create_project(self, name):
+        if name in self.projects:
+            raise ValueError("Project already exists")
+        self.projects[name] = Project(name, [])
+        return self.projects[name]
 
-if __name__ == '__main__':
-    main()
+    def add_page(self, project_name, page_name):
+        if project_name not in self.projects:
+            raise ValueError("Project does not exist")
+        project = self.projects[project_name]
+        project.pages.append(Page(page_name, []))
+        return project.pages[-1]
+
+    def add_component(self, project_name, page_name, component):
+        if project_name not in self.projects:
+            raise ValueError("Project does not exist")
+        project = self.projects[project_name]
+        for page in project.pages:
+            if page.name == page_name:
+                page.components.append(component)
+                return page
+        raise ValueError("Page does not exist")

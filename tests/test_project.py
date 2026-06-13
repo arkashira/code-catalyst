@@ -1,55 +1,47 @@
-import os
-import json
-from project import Project, create_project
 import pytest
+from project import ProjectManager, Project, Page
 
-def test_create_project(tmp_path):
-    project = Project(
-        name='test-project',
-        industry='test-industry',
-        core_feature='test-core-feature',
-        pricing_model='test-pricing-model',
-        target_audience='test-target-audience'
-    )
-    create_project(project)
-    assert os.path.exists('test-project')
-    assert os.path.exists(os.path.join('test-project', 'src'))
-    assert os.path.exists(os.path.join('test-project', 'tests'))
-    assert os.path.exists(os.path.join('test-project', 'README.md'))
-    assert os.path.exists(os.path.join('test-project', 'github.json'))
-    with open(os.path.join('test-project', 'README.md'), 'r') as f:
-        assert f.read() == '# test-project\nIndustry: test-industry\nCore Feature: test-core-feature\nPricing Model: test-pricing-model\nTarget Audience: test-target-audience\n'
-    with open(os.path.join('test-project', 'github.json'), 'r') as f:
-        assert json.load(f) == {
-            'name': 'test-project',
-            'description': 'test-project SaaS MVP project',
-            'keywords': ['test-industry', 'test-core-feature'],
-            'license': 'MIT'
-        }
+def test_create_project():
+    manager = ProjectManager()
+    project = manager.create_project("My Project")
+    assert project.name == "My Project"
+    assert len(project.pages) == 0
 
-def test_main(tmp_path):
-    import sys
-    import io
-    import argparse
-    from project import main
-    sys.argv = ['project.py', '--name', 'test-project', '--industry', 'test-industry', '--core-feature', 'test-core-feature', '--pricing-model', 'test-pricing-model', '--target-audience', 'test-target-audience']
-    main()
-    assert os.path.exists('test-project')
-    assert os.path.exists(os.path.join('test-project', 'src'))
-    assert os.path.exists(os.path.join('test-project', 'tests'))
-    assert os.path.exists(os.path.join('test-project', 'README.md'))
-    assert os.path.exists(os.path.join('test-project', 'github.json'))
+def test_create_project_duplicate():
+    manager = ProjectManager()
+    manager.create_project("My Project")
+    with pytest.raises(ValueError):
+        manager.create_project("My Project")
 
-def test_project_dataclass():
-    project = Project(
-        name='test-project',
-        industry='test-industry',
-        core_feature='test-core-feature',
-        pricing_model='test-pricing-model',
-        target_audience='test-target-audience'
-    )
-    assert project.name == 'test-project'
-    assert project.industry == 'test-industry'
-    assert project.core_feature == 'test-core-feature'
-    assert project.pricing_model == 'test-pricing-model'
-    assert project.target_audience == 'test-target-audience'
+def test_add_page():
+    manager = ProjectManager()
+    project = manager.create_project("My Project")
+    page = manager.add_page("My Project", "My Page")
+    assert page.name == "My Page"
+    assert len(page.components) == 0
+
+def test_add_page_non_existent_project():
+    manager = ProjectManager()
+    with pytest.raises(ValueError):
+        manager.add_page("My Project", "My Page")
+
+def test_add_component():
+    manager = ProjectManager()
+    project = manager.create_project("My Project")
+    page = manager.add_page("My Project", "My Page")
+    component = "My Component"
+    updated_page = manager.add_component("My Project", "My Page", component)
+    assert updated_page.name == "My Page"
+    assert len(updated_page.components) == 1
+    assert updated_page.components[0] == component
+
+def test_add_component_non_existent_project():
+    manager = ProjectManager()
+    with pytest.raises(ValueError):
+        manager.add_component("My Project", "My Page", "My Component")
+
+def test_add_component_non_existent_page():
+    manager = ProjectManager()
+    project = manager.create_project("My Project")
+    with pytest.raises(ValueError):
+        manager.add_component("My Project", "My Page", "My Component")
