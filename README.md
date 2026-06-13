@@ -1,18 +1,17 @@
-# Validation Toolkit
-A validation toolkit for tracking usage and conversion funnels.
+# Code Catalyst
+
+A rapid prototyping platform for SaaS applications.
 
 ## Features
-* Track usage of features
-* Track conversion funnels
-* Generate reports
-* Export reports to JSON
+
+* Library of functional components for common SaaS features
+* Drag-and-drop components to build your application
+* Pre-configured and easily customizable components
 
 ## Usage
-1. Create a `ValidationToolkit` instance
-2. Track usage of features using `track_usage`
-3. Track conversion funnels using `track_conversion`
-4. Generate a report using `generate_report`
-5. Export the report to JSON using `export_report`
 
-## Testing
-Run `pytest` to run the tests.
+1. Create a new instance of the `CodeCatalyst` class.
+2. Add components to your application using the `add_component` method.
+3. Customize components using the `customize_component` method.
+4. Get the application configuration using the `get_application_config` method.
+5. Get the library of available components using the `get_library` method.
