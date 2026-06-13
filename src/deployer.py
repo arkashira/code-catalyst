@@ -1,33 +1,35 @@
-import argparse
 import json
-import os
+import uuid
 from dataclasses import dataclass
-from urllib.request import urlopen
+from urllib.parse import urlparse
 
 @dataclass
 class Deployment:
-    project: str
-    subdomain: str
-    status: str
+    id: str
+    url: str
 
-def deploy_mvp(project):
-    # Simulate deployment to a cloud environment
-    subdomain = f"{project}.codecatalyst.io"
-    status = "deployed"
-    return Deployment(project, subdomain, status)
+class Deployer:
+    def __init__(self):
+        self.deployments = {}
 
-def get_deployment_status(project):
-    # Simulate getting deployment status from a dashboard
-    return f"{project} is deployed"
+    def deploy(self, app_name):
+        deployment_id = str(uuid.uuid4())
+        url = f"https://{app_name}-{deployment_id}.example.com"
+        self.deployments[deployment_id] = Deployment(deployment_id, url)
+        return url
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("project", help="Project name")
-    args = parser.parse_args()
-    deployment = deploy_mvp(args.project)
-    print(f"Deployment status: {deployment.status}")
-    print(f"MVP reachable at: {deployment.subdomain}")
-    print(get_deployment_status(args.project))
+    def get_deployment_url(self, deployment_id):
+        deployment = self.deployments.get(deployment_id)
+        if deployment:
+            return deployment.url
+        return None
 
-if __name__ == "__main__":
-    main()
+    def copy_url_to_clipboard(self, url):
+        # Simulate copying to clipboard
+        print(f"URL copied to clipboard: {url}")
+
+    def get_stable_url(self, deployment_id):
+        deployment = self.deployments.get(deployment_id)
+        if deployment:
+            return deployment.url
+        return None
