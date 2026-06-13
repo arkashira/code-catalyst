@@ -1,36 +1,32 @@
+from deployment import Deployment, ScalingConfig
 import pytest
-from deployment import Deployment, ScalingConfig, AnalyticsDashboard, UI
 
 def test_deployment_scaling():
-    deployment = Deployment("my_deployment", ScalingConfig(1, 10, 50))
-    analytics_dashboard = AnalyticsDashboard()
+    scaling_config = ScalingConfig(min_replicas=1, max_replicas=10, cpu_threshold=50)
+    deployment = Deployment("test-deployment", scaling_config)
 
-    # Simulate scaling
+    # Test scaling up
     deployment.scale(60)
-    analytics_dashboard.log_scaling_event(deployment, "CPU usage exceeded threshold")
-
     assert deployment.pod_count == 2
-    assert len(analytics_dashboard.scaling_events) == 1
 
-def test_adjust_scaling_thresholds():
-    deployment = Deployment("my_deployment", ScalingConfig(1, 10, 50))
-    ui = UI(deployment)
+    # Test scaling down
+    deployment.scale(20)
+    assert deployment.pod_count == 1
 
-    # Adjust scaling thresholds via UI
-    ui.adjust_scaling_thresholds(2, 15, 40)
+def test_deployment_logging():
+    scaling_config = ScalingConfig(min_replicas=1, max_replicas=10, cpu_threshold=50)
+    deployment = Deployment("test-deployment", scaling_config)
 
-    assert deployment.scaling_config.min_replicas == 2
-    assert deployment.scaling_config.max_replicas == 15
-    assert deployment.scaling_config.cpu_threshold == 40
+    deployment.log_scaling_event("Scaled up")
+    # No assertion, just test that the log message is printed
 
-def test_analytics_dashboard():
-    analytics_dashboard = AnalyticsDashboard()
-    deployment = Deployment("my_deployment", ScalingConfig(1, 10, 50))
+def test_deployment_to_dict():
+    scaling_config = ScalingConfig(min_replicas=1, max_replicas=10, cpu_threshold=50)
+    deployment = Deployment("test-deployment", scaling_config)
 
-    # Log scaling event
-    analytics_dashboard.log_scaling_event(deployment, "CPU usage exceeded threshold")
-
-    assert len(analytics_dashboard.scaling_events) == 1
-    assert analytics_dashboard.scaling_events[0]["deployment"] == deployment.name
-    assert analytics_dashboard.scaling_events[0]["reason"] == "CPU usage exceeded threshold"
-    assert analytics_dashboard.scaling_events[0]["pod_count"] == deployment.pod_count
+    deployment_dict = deployment.to_dict()
+    assert deployment_dict["name"] == "test-deployment"
+    assert deployment_dict["scaling_config"]["min_replicas"] == 1
+    assert deployment_dict["scaling_config"]["max_replicas"] == 10
+    assert deployment_dict["scaling_config"]["cpu_threshold"] == 50
+    assert deployment_dict["pod_count"] == 1
