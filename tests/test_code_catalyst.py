@@ -1,47 +1,41 @@
-from code_catalyst import CodeCatalyst, Feedback
+import pytest
+import json
+from code_catalyst import CodeCatalyst, PageTemplate, Component
 
-def test_share_prototype():
+def test_add_page_template():
     cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    shared_url = cc.share_prototype(prototype_id, prototype_url)
-    assert shared_url == f"{prototype_url}?prototype_id={prototype_id}"
+    cc.add_page_template("Test", ["Header", "Footer"])
+    assert len(cc.page_templates) == 6
+    assert cc.page_templates[-1].name == "Test"
+    assert cc.page_templates[-1].components == ["Header", "Footer"]
 
-def test_collect_feedback():
+def test_add_component():
     cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    cc.share_prototype(prototype_id, prototype_url)
-    user_feedback = "This is great!"
-    cc.collect_feedback(prototype_id, user_feedback)
-    feedback = cc.view_feedback(prototype_id)
-    assert len(feedback) == 1
-    assert feedback[0].prototype_url == prototype_url
-    assert feedback[0].user_feedback == user_feedback
+    cc.add_component("Test", 0)
+    assert len(cc.components) == 1
+    assert cc.components[0].name == "Test"
+    assert cc.components[0].position == 0
 
-def test_view_feedback():
+def test_reposition_component():
     cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    cc.share_prototype(prototype_id, prototype_url)
-    user_feedback = "This is great!"
-    cc.collect_feedback(prototype_id, user_feedback)
-    feedback = cc.view_feedback(prototype_id)
-    assert len(feedback) == 1
-    assert feedback[0].prototype_url == prototype_url
-    assert feedback[0].user_feedback == user_feedback
+    cc.add_component("Test", 0)
+    cc.reposition_component("Test", 1)
+    assert cc.components[0].position == 1
 
-def test_analyze_feedback():
+def test_autosave():
     cc = CodeCatalyst()
-    prototype_id = "123"
-    prototype_url = "https://example.com/prototype"
-    cc.share_prototype(prototype_id, prototype_url)
-    user_feedback1 = "This is great!"
-    user_feedback2 = "This is great!"
-    user_feedback3 = "This is bad!"
-    cc.collect_feedback(prototype_id, user_feedback1)
-    cc.collect_feedback(prototype_id, user_feedback2)
-    cc.collect_feedback(prototype_id, user_feedback3)
-    analysis = cc.analyze_feedback(prototype_id)
-    assert analysis[user_feedback1] == 2
-    assert analysis[user_feedback3] == 1
+    cc.add_page_template("Test", ["Header", "Footer"])
+    cc.add_component("Test", 0)
+    cc.autosave()
+    with open("autosave.json", "r") as f:
+        data = json.load(f)
+    assert len(data["page_templates"]) == 6
+    assert data["page_templates"][-1]["name"] == "Test"
+    assert len(data["components"]) == 1
+    assert data["components"][0]["name"] == "Test"
+
+def test_version():
+    cc = CodeCatalyst()
+    cc.add_page_template("Test", ["Header", "Footer"])
+    cc.add_component("Test", 0)
+    assert cc.version() == 2
