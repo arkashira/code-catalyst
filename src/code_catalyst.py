@@ -1,47 +1,40 @@
 import json
 from dataclasses import dataclass
-from typing import List
+from urllib.parse import urlparse
 
 @dataclass
-class PageTemplate:
-    name: str
-    components: List[str]
-
-@dataclass
-class Component:
-    name: str
-    position: int
+class Feedback:
+    prototype_url: str
+    user_feedback: str
 
 class CodeCatalyst:
     def __init__(self):
-        self.page_templates = [
-            PageTemplate("Home", ["Header", "Footer"]),
-            PageTemplate("About", ["Header", "Content", "Footer"]),
-            PageTemplate("Contact", ["Header", "Form", "Footer"]),
-            PageTemplate("Blog", ["Header", "Posts", "Footer"]),
-            PageTemplate("FAQ", ["Header", "Questions", "Footer"]),
-        ]
-        self.components = []
-        self.changes = []
+        self.prototypes = {}
+        self.feedback = {}
 
-    def add_page_template(self, name: str, components: List[str]):
-        self.page_templates.append(PageTemplate(name, components))
-        self.changes.append({"action": "add_page_template", "name": name, "components": components})
+    def share_prototype(self, prototype_id, prototype_url):
+        self.prototypes[prototype_id] = prototype_url
+        return f"{prototype_url}?id={prototype_id}"
 
-    def add_component(self, name: str, position: int):
-        self.components.append(Component(name, position))
-        self.changes.append({"action": "add_component", "name": name, "position": position})
+    def provide_feedback(self, prototype_id, user_feedback):
+        if prototype_id not in self.prototypes:
+            raise ValueError("Prototype not found")
+        if prototype_id not in self.feedback:
+            self.feedback[prototype_id] = []
+        self.feedback[prototype_id].append(Feedback(self.prototypes[prototype_id], user_feedback))
 
-    def reposition_component(self, name: str, new_position: int):
-        for component in self.components:
-            if component.name == name:
-                component.position = new_position
-                self.changes.append({"action": "reposition_component", "name": name, "new_position": new_position})
-                break
+    def view_feedback(self, prototype_id):
+        if prototype_id not in self.feedback:
+            return []
+        return self.feedback[prototype_id]
 
-    def autosave(self):
-        with open("autosave.json", "w") as f:
-            json.dump({"page_templates": [pt.__dict__ for pt in self.page_templates], "components": [c.__dict__ for c in self.components], "changes": self.changes}, f)
-
-    def version(self):
-        return len(self.changes)
+    def analyze_feedback(self, prototype_id):
+        feedback = self.view_feedback(prototype_id)
+        if not feedback:
+            return {}
+        analysis = {}
+        for f in feedback:
+            if f.user_feedback not in analysis:
+                analysis[f.user_feedback] = 0
+            analysis[f.user_feedback] += 1
+        return analysis
