@@ -1,15 +1,18 @@
-# code-catalyst
+# Code Catalyst
+A Python project for monitoring resource usage and auto-scaling.
 
-A minimal, pure‑Python implementation of an “idea capture wizard” used by the
-founder onboarding flow.
+## Requirements
+* Python 3.9+
+* No external dependencies
 
-## Features
-
-- Collects product name, target audience, core features and revenue model.
-- Validates that all required fields are present and non‑empty.
-- Stores the validated idea in an in‑memory database (a stand‑in for a real
-  persistence layer).
+## Installation
+1. Clone the repository: `git clone https://github.com/your-repo/code-catalyst.git`
+2. Run the tests: `python -m pytest tests`
 
 ## Usage
+1. Run the Prometheus client: `python src/prometheus_client.py`
+2. Run the autoscaler: `python src/autoscaler.py`
+3. Run the alert manager: `python src/alert_manager.py`
 
-The library is deliberately tiny – it can be used directly from Python code:
+## Tests
+1. Run tests: `python -m pytest tests`
