@@ -1,5 +1,12 @@
-# Gantt Chart Project
-This project generates a Gantt-style chart from a blueprint JSON file.
+# Code Catalyst
+A Python project that generates a full SaaS stack (frontend, backend, database, auth) automatically.
 
 ## Usage
-To use this project, run the following command:
+Run the `main.py` file to generate the SaaS stack.
+
+## Requirements
+- Python 3.8 or later
+- No external dependencies required
+
+## Tests
+Run the tests using `pytest` command.
