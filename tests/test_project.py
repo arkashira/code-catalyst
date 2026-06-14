@@ -1,47 +1,29 @@
 import pytest
-from project import ProjectManager, Project, Page
+from project import ProjectManager
 
 def test_create_project():
     manager = ProjectManager()
-    project = manager.create_project("My Project")
-    assert project.name == "My Project"
-    assert len(project.pages) == 0
-
-def test_create_project_duplicate():
-    manager = ProjectManager()
-    manager.create_project("My Project")
-    with pytest.raises(ValueError):
-        manager.create_project("My Project")
+    assert manager.create_project("test_project")
+    assert not manager.create_project("test_project")
 
 def test_add_page():
     manager = ProjectManager()
-    project = manager.create_project("My Project")
-    page = manager.add_page("My Project", "My Page")
-    assert page.name == "My Page"
-    assert len(page.components) == 0
-
-def test_add_page_non_existent_project():
-    manager = ProjectManager()
-    with pytest.raises(ValueError):
-        manager.add_page("My Project", "My Page")
+    manager.create_project("test_project")
+    assert manager.add_page("test_project", "test_page")
+    assert not manager.add_page("non_existent_project", "test_page")
 
 def test_add_component():
     manager = ProjectManager()
-    project = manager.create_project("My Project")
-    page = manager.add_page("My Project", "My Page")
-    component = "My Component"
-    updated_page = manager.add_component("My Project", "My Page", component)
-    assert updated_page.name == "My Page"
-    assert len(updated_page.components) == 1
-    assert updated_page.components[0] == component
+    manager.create_project("test_project")
+    manager.add_page("test_project", "test_page")
+    assert manager.add_component("test_project", "test_page", "test_component")
+    assert not manager.add_component("non_existent_project", "test_page", "test_component")
+    assert not manager.add_component("test_project", "non_existent_page", "test_component")
 
-def test_add_component_non_existent_project():
+def test_save_project():
     manager = ProjectManager()
-    with pytest.raises(ValueError):
-        manager.add_component("My Project", "My Page", "My Component")
-
-def test_add_component_non_existent_page():
-    manager = ProjectManager()
-    project = manager.create_project("My Project")
-    with pytest.raises(ValueError):
-        manager.add_component("My Project", "My Page", "My Component")
+    manager.create_project("test_project")
+    manager.add_page("test_project", "test_page")
+    manager.add_component("test_project", "test_page", "test_component")
+    assert manager.save_project("test_project")
+    assert not manager.save_project("non_existent_project")

@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 @dataclass
 class Page:
@@ -18,23 +18,34 @@ class ProjectManager:
 
     def create_project(self, name):
         if name in self.projects:
-            raise ValueError("Project already exists")
+            return False
         self.projects[name] = Project(name, [])
-        return self.projects[name]
+        return True
 
     def add_page(self, project_name, page_name):
         if project_name not in self.projects:
-            raise ValueError("Project does not exist")
+            return False
         project = self.projects[project_name]
         project.pages.append(Page(page_name, []))
-        return project.pages[-1]
+        return True
 
     def add_component(self, project_name, page_name, component):
         if project_name not in self.projects:
-            raise ValueError("Project does not exist")
+            return False
         project = self.projects[project_name]
         for page in project.pages:
             if page.name == page_name:
                 page.components.append(component)
-                return page
-        raise ValueError("Page does not exist")
+                return True
+        return False
+
+    def save_project(self, project_name):
+        if project_name not in self.projects:
+            return False
+        project = self.projects[project_name]
+        with open(f"{project_name}.json", "w") as f:
+            json.dump({
+                "name": project.name,
+                "pages": [{"name": page.name, "components": page.components} for page in project.pages]
+            }, f)
+        return True
