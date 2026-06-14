@@ -3,12 +3,12 @@ requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry]
-name = "analytics-dashboard"
+name = "code-catalyst"
 version = "0.1.0"
-description = "Analytics dashboard for user engagement"
+description = ""
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

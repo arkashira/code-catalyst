@@ -1,13 +1,28 @@
-from src.analytics import Analytics
-from src.dashboard import Dashboard
+from src.components import Component, ComponentLibrary, ApplicationBuilder
+import json
 
 def main():
-    analytics = Analytics()
-    dashboard = Dashboard(analytics)
-    analytics.track('page_view', 'home')
-    analytics.track('click', 'button')
-    metrics = dashboard.get_realtime_metrics()
-    print(metrics)
+    library = ComponentLibrary()
+    builder = ApplicationBuilder()
 
-if __name__ == '__main__':
+    # Add components to library
+    library.add_component(Component("Login", "Login functionality", {"username": "", "password": ""}))
+    library.add_component(Component("Dashboard", "Dashboard view", {"title": "", "content": ""}))
+
+    # Get components from library
+    components = library.get_components()
+
+    # Add components to application
+    for component in components:
+        builder.add_component_to_app(component)
+
+    # Get application components
+    app_components = builder.get_app_components()
+
+    # Print application components
+    print("Application Components:")
+    for component in app_components:
+        print(f"Name: {component.name}, Description: {component.description}, Config: {json.dumps(component.config)}")
+
+if __name__ == "__main__":
     main()

@@ -19,10 +19,11 @@ class ComponentLibrary:
 
 class ApplicationBuilder:
     def __init__(self):
-        self.components = []
+        self.library = ComponentLibrary()
+        self.app_components = []
 
-    def add_component(self, component: Component):
-        self.components.append(component)
+    def add_component_to_app(self, component: Component):
+        self.app_components.append(component)
 
-    def build_application(self):
-        return self.components
+    def get_app_components(self) -> List[Component]:
+        return self.app_components
