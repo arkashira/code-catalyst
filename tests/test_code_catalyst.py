@@ -1,51 +1,36 @@
-import pytest
-from code_catalyst import generate_docker_compose, generate_backend_code, generate_frontend_code, generate_auth0_config, Service
 import json
+from src.code_catalyst import generate_mvp_blueprint, store_mvp_blueprint, MVPBlueprint
+import pytest
 import os
-import sys
-sys.path.insert(0, '../src')
 
-def test_generate_docker_compose():
-    services = [
-        {"name": "postgres", "image": "postgres:latest", "ports": [5432]},
-        {"name": "backend", "image": "node:latest", "ports": [80]},
-        {"name": "frontend", "image": "node:latest", "ports": [3000]},
-        {"name": "auth0", "image": "auth0/auth0:latest", "ports": [80]}
-    ]
-    docker_compose = generate_docker_compose([Service(**service) for service in services])
-    assert "version" in docker_compose
-    assert "services" in docker_compose
-    for service in services:
-        assert service["name"] in docker_compose["services"]
+def test_generate_mvp_blueprint():
+    market_insight = {
+        "core_features": ["feature1", "feature2"],
+        "tech_stack": ["tech1", "tech2"]
+    }
+    mvp_blueprint = generate_mvp_blueprint(market_insight)
+    assert isinstance(mvp_blueprint, MVPBlueprint)
+    assert mvp_blueprint.core_features == market_insight["core_features"]
+    assert mvp_blueprint.tech_stack == market_insight["tech_stack"]
 
-def test_generate_backend_code():
-    resource_name = "example"
-    backend_code = generate_backend_code(resource_name)
-    assert f"Hello from {resource_name}!" in backend_code
+def test_estimate_build_time():
+    core_features = ["feature1", "feature2"]
+    tech_stack = ["tech1", "tech2"]
+    estimated_build_time = generate_mvp_blueprint({"core_features": core_features, "tech_stack": tech_stack}).estimated_build_time
+    assert isinstance(estimated_build_time, str)
 
-def test_generate_frontend_code():
-    resource_name = "example"
-    frontend_code = generate_frontend_code(resource_name)
-    assert f"Hello from {resource_name}!" in frontend_code
-
-def test_generate_auth0_config():
-    auth0_config = generate_auth0_config()
-    assert "domain" in auth0_config
-    assert "clientId" in auth0_config
-    assert "clientSecret" in auth0_config
-
-def test_main():
-    # Run the main function and check if the files are generated
-    from code_catalyst import main
-    main()
-    assert os.path.exists("docker-compose.yml")
-    assert os.path.exists("backend/index.py")
-    assert os.path.exists("frontend/index.py")
-    assert os.path.exists("auth0.json")
-    # Remove the generated files
-    os.remove("docker-compose.yml")
-    os.remove("backend/index.py")
-    os.remove("frontend/index.py")
-    os.remove("auth0.json")
-    os.rmdir("backend")
-    os.rmdir("frontend")
+def test_store_mvp_blueprint(tmp_path):
+    user_workspace = tmp_path / "user_workspace"
+    user_workspace.mkdir()
+    market_insight = {
+        "core_features": ["feature1", "feature2"],
+        "tech_stack": ["tech1", "tech2"]
+    }
+    mvp_blueprint = generate_mvp_blueprint(market_insight)
+    store_mvp_blueprint(mvp_blueprint, str(user_workspace))
+    assert (user_workspace / "mvp_blueprint.json").exists()
+    with open(user_workspace / "mvp_blueprint.json", "r") as f:
+        stored_mvp_blueprint = json.load(f)
+    assert stored_mvp_blueprint["core_features"] == mvp_blueprint.core_features
+    assert stored_mvp_blueprint["tech_stack"] == mvp_blueprint.tech_stack
+    assert stored_mvp_blueprint["estimated_build_time"] == mvp_blueprint.estimated_build_time

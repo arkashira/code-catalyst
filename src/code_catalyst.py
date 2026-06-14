@@ -1,84 +1,31 @@
 import json
-import os
 from dataclasses import dataclass
-from typing import List
+from datetime import datetime, timedelta
 
 @dataclass
-class Service:
-    name: str
-    image: str
-    ports: List[int]
+class MVPBlueprint:
+    core_features: list
+    tech_stack: list
+    estimated_build_time: str
 
-def generate_docker_compose(services):
-    docker_compose = {
-        "version": "3",
-        "services": {}
-    }
-    for service in services:
-        docker_compose["services"][service.name] = {
-            "image": service.image,
-            "ports": [f"{port}:{port}" for port in service.ports]
-        }
-    return docker_compose
+def generate_mvp_blueprint(market_insight: dict) -> MVPBlueprint:
+    core_features = market_insight.get("core_features", [])
+    tech_stack = market_insight.get("tech_stack", [])
+    estimated_build_time = estimate_build_time(core_features, tech_stack)
+    return MVPBlueprint(core_features, tech_stack, estimated_build_time)
 
-def generate_backend_code(resource_name):
-    backend_code = f"""
-from http.server import BaseHTTPRequestHandler, HTTPServer
+def estimate_build_time(core_features: list, tech_stack: list) -> str:
+    # Simple estimation based on the number of features and tech stack complexity
+    feature_complexity = len(core_features) * 2
+    tech_stack_complexity = len(tech_stack) * 3
+    total_complexity = feature_complexity + tech_stack_complexity
+    estimated_build_time = str(timedelta(days=total_complexity))
+    return estimated_build_time
 
-class RequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write(b'Hello from {resource_name}!')
-
-def run_server():
-    server_address = ('', 80)
-    httpd = HTTPServer(server_address, RequestHandler)
-    print('Starting httpd on port 80...')
-    httpd.serve_forever()
-
-if __name__ == '__main__':
-    run_server()
-"""
-    return backend_code
-
-def generate_frontend_code(resource_name):
-    frontend_code = f"""
-print("Hello from {resource_name}!")
-"""
-    return frontend_code
-
-def generate_auth0_config():
-    auth0_config = {
-        "domain": "example.auth0.com",
-        "clientId": "example-client-id",
-        "clientSecret": "example-client-secret"
-    }
-    return auth0_config
-
-def main():
-    services = [
-        Service("postgres", "postgres:latest", [5432]),
-        Service("backend", "node:latest", [80]),
-        Service("frontend", "node:latest", [3000]),
-        Service("auth0", "auth0/auth0:latest", [80])
-    ]
-    docker_compose = generate_docker_compose(services)
-    with open("docker-compose.yml", "w") as f:
-        json.dump(docker_compose, f, indent=4)
-    resource_name = "example"
-    backend_code = generate_backend_code(resource_name)
-    os.makedirs("backend", exist_ok=True)
-    with open("backend/index.py", "w") as f:
-        f.write(backend_code)
-    frontend_code = generate_frontend_code(resource_name)
-    os.makedirs("frontend", exist_ok=True)
-    with open("frontend/index.py", "w") as f:
-        f.write(frontend_code)
-    auth0_config = generate_auth0_config()
-    with open("auth0.json", "w") as f:
-        json.dump(auth0_config, f, indent=4)
-
-if __name__ == "__main__":
-    main()
+def store_mvp_blueprint(mvp_blueprint: MVPBlueprint, user_workspace: str) -> None:
+    with open(f"{user_workspace}/mvp_blueprint.json", "w") as f:
+        json.dump({
+            "core_features": mvp_blueprint.core_features,
+            "tech_stack": mvp_blueprint.tech_stack,
+            "estimated_build_time": mvp_blueprint.estimated_build_time
+        }, f)
