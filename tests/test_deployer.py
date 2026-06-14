@@ -1,49 +1,36 @@
 import pytest
-from src.deployer import generate_deployment_config, deploy_to_staging, get_deployment_logs
+from deployer import Deployer, Deployment
 
-def test_generate_deployment_config():
-    environment = "staging"
-    staging_url = "https://example.com"
-    deployment_logs = "deployment_logs.txt"
-    deployment_config = generate_deployment_config(environment, staging_url, deployment_logs)
-    assert deployment_config.environment == environment
-    assert deployment_config.staging_url == staging_url
-    assert deployment_config.deployment_logs == deployment_logs
+def test_successful_deployment():
+    deployer = Deployer()
+    code_path = "./my_mvp_code"
+    
+    result = deployer.deploy_mvp(code_path)
+    
+    assert result.status == "success"
+    assert result.staging_url.startswith("https://staging.example.com/")
+    assert len(result.id) == 8
+    assert any("Deployment completed" in log for log in result.logs)
+    assert any(code_path in log for log in result.logs)
 
-def test_deploy_to_staging():
-    environment = "staging"
-    staging_url = "https://example.com"
-    deployment_logs = "deployment_logs.txt"
-    deployment_config = generate_deployment_config(environment, staging_url, deployment_logs)
-    deployed_staging_url = deploy_to_staging(deployment_config)
-    assert deployed_staging_url == staging_url
+def test_empty_code_path():
+    deployer = Deployer()
+    
+    with pytest.raises(ValueError, match="Code path cannot be empty"):
+        deployer.deploy_mvp("")
 
-def test_get_deployment_logs():
-    environment = "staging"
-    staging_url = "https://example.com"
-    deployment_logs = "deployment_logs.txt"
-    deployment_config = generate_deployment_config(environment, staging_url, deployment_logs)
-    retrieved_deployment_logs = get_deployment_logs(deployment_config)
-    assert retrieved_deployment_logs == deployment_logs
+def test_deployment_log_retrieval():
+    deployer = Deployer()
+    first_deployment = deployer.deploy_mvp("./first")
+    
+    logs = deployer.get_deployment_logs(first_deployment.id)
+    
+    assert len(logs) == 4
+    assert logs[-1].startswith("SUCCESS: Deployment completed")
+    assert any("first" in log for log in logs)
 
-def test_main():
-    # Test the main function with valid arguments
-    import sys
-    import io
-    from contextlib import redirect_stdout
-    from unittest.mock import patch
-
-    with patch.object(sys, 'argv', ['deployer.py', '-e', 'staging', '-u', 'https://example.com', '-l', 'deployment_logs.txt']):
-        with redirect_stdout(io.StringIO()) as f:
-            from src.deployer import main
-            main()
-            output = f.getvalue()
-            assert "Deployment successful!" in output
-            assert "Staging URL: https://example.com" in output
-            assert "Deployment logs: deployment_logs.txt" in output
-
-    # Test the main function with invalid arguments
-    with patch.object(sys, 'argv', ['deployer.py', '-e', 'staging']):
-        with pytest.raises(SystemExit):
-            from src.deployer import main
-            main()
+def test_invalid_deployment_id():
+    deployer = Deployer()
+    
+    with pytest.raises(ValueError, match="Deployment 999 not found"):
+        deployer.get_deployment_logs("999")
