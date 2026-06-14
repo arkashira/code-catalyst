@@ -1,12 +1,10 @@
-[project]
-name = "code_catalyst_deployer"
+[tool.poetry]
+name = "code-catalyst"
 version = "0.1.0"
-description = "Automated staging deployment system for code-catalyst MVPs"
-authors = ["Axentx OS <contact@axentx.com>"]
-dependencies = []
+description = "Backend Scaffold Generator"
 
-[project.scripts]
-deployer = "deployer:main"
+[tool.poetry.dependencies]
+python = "^3.9"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+[tool.poetry.dev-dependencies]
+pytest = "^7.1"
