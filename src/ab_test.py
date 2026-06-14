@@ -1,40 +1,57 @@
 import json
 from dataclasses import dataclass
-from random import random
+from typing import Dict
 
 @dataclass
 class Variant:
-    name: str
-    traffic_percentage: float
+    url: str
+    clicks: int = 0
+    conversions: int = 0
 
 class ABTest:
-    def __init__(self, variant1, variant2):
+    def __init__(self, variant1: Variant, variant2: Variant):
         self.variant1 = variant1
         self.variant2 = variant2
-        self.results = {variant1.name: 0, variant2.name: 0}
+        self.total_clicks = 0
+        self.total_conversions = 0
 
     def split_traffic(self):
-        if random() < self.variant1.traffic_percentage / 100:
-            return self.variant1.name
-        else:
-            return self.variant2.name
+        return self.variant1, self.variant2
 
-    def record_engagement(self, variant_name):
-        self.results[variant_name] += 1
+    def update_results(self, variant: Variant, clicked: bool, converted: bool):
+        if clicked:
+            variant.clicks += 1
+            self.total_clicks += 1
+        if converted:
+            variant.conversions += 1
+            self.total_conversions += 1
 
     def get_results(self):
-        return self.results
+        return {
+            'variant1': {
+                'url': self.variant1.url,
+                'clicks': self.variant1.clicks,
+                'conversions': self.variant1.conversions,
+                'ctr': self.variant1.clicks / (self.variant1.clicks + self.variant2.clicks) if self.total_clicks > 0 else 0,
+                'conversion_rate': self.variant1.conversions / self.variant1.clicks if self.variant1.clicks > 0 else 0
+            },
+            'variant2': {
+                'url': self.variant2.url,
+                'clicks': self.variant2.clicks,
+                'conversions': self.variant2.conversions,
+                'ctr': self.variant2.clicks / (self.variant1.clicks + self.variant2.clicks) if self.total_clicks > 0 else 0,
+                'conversion_rate': self.variant2.conversions / self.variant2.clicks if self.variant2.clicks > 0 else 0
+            }
+        }
 
-    def get_statistical_significance(self):
-        # Simple statistical significance calculation for demonstration purposes
-        total_engagements = sum(self.results.values())
-        if total_engagements == 0:
-            return 0
-        variant1_engagements = self.results[self.variant1.name]
-        variant2_engagements = self.results[self.variant2.name]
-        variant1_percentage = variant1_engagements / total_engagements
-        variant2_percentage = variant2_engagements / total_engagements
-        if abs(variant1_percentage - variant2_percentage) > 0.1:
-            return "Statistically significant difference"
-        else:
-            return "No statistically significant difference"
+def main():
+    variant1 = Variant('https://example.com/variant1')
+    variant2 = Variant('https://example.com/variant2')
+    ab_test = ABTest(variant1, variant2)
+    print(ab_test.split_traffic())
+    ab_test.update_results(variant1, True, True)
+    ab_test.update_results(variant2, True, False)
+    print(json.dumps(ab_test.get_results(), indent=4))
+
+if __name__ == '__main__':
+    main()

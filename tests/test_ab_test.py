@@ -1,26 +1,48 @@
+import pytest
 from ab_test import ABTest, Variant
 
 def test_split_traffic():
-    variant1 = Variant("Variant 1", 50)
-    variant2 = Variant("Variant 2", 50)
+    variant1 = Variant('https://example.com/variant1')
+    variant2 = Variant('https://example.com/variant2')
     ab_test = ABTest(variant1, variant2)
-    results = [ab_test.split_traffic() for _ in range(10000)]
-    assert abs(results.count("Variant 1") / len(results) - 0.5) < 0.01
+    result = ab_test.split_traffic()
+    assert result == (variant1, variant2)
 
-def test_record_engagement():
-    variant1 = Variant("Variant 1", 50)
-    variant2 = Variant("Variant 2", 50)
+def test_update_results():
+    variant1 = Variant('https://example.com/variant1')
+    variant2 = Variant('https://example.com/variant2')
     ab_test = ABTest(variant1, variant2)
-    ab_test.record_engagement("Variant 1")
-    ab_test.record_engagement("Variant 2")
-    assert ab_test.get_results() == {"Variant 1": 1, "Variant 2": 1}
+    ab_test.update_results(variant1, True, True)
+    assert variant1.clicks == 1
+    assert variant1.conversions == 1
+    ab_test.update_results(variant2, True, False)
+    assert variant2.clicks == 1
+    assert variant2.conversions == 0
 
-def test_get_statistical_significance():
-    variant1 = Variant("Variant 1", 50)
-    variant2 = Variant("Variant 2", 50)
+def test_get_results():
+    variant1 = Variant('https://example.com/variant1')
+    variant2 = Variant('https://example.com/variant2')
     ab_test = ABTest(variant1, variant2)
-    for _ in range(1000):
-        ab_test.record_engagement("Variant 1")
-    for _ in range(100):
-        ab_test.record_engagement("Variant 2")
-    assert "Statistically significant difference" in ab_test.get_statistical_significance()
+    ab_test.update_results(variant1, True, True)
+    ab_test.update_results(variant2, True, False)
+    result = ab_test.get_results()
+    assert result['variant1']['url'] == 'https://example.com/variant1'
+    assert result['variant1']['clicks'] == 1
+    assert result['variant1']['conversions'] == 1
+    assert result['variant1']['ctr'] == 0.5
+    assert result['variant1']['conversion_rate'] == 1.0
+    assert result['variant2']['url'] == 'https://example.com/variant2'
+    assert result['variant2']['clicks'] == 1
+    assert result['variant2']['conversions'] == 0
+    assert result['variant2']['ctr'] == 0.5
+    assert result['variant2']['conversion_rate'] == 0.0
+
+def test_get_results_zero_clicks():
+    variant1 = Variant('https://example.com/variant1')
+    variant2 = Variant('https://example.com/variant2')
+    ab_test = ABTest(variant1, variant2)
+    result = ab_test.get_results()
+    assert result['variant1']['ctr'] == 0.0
+    assert result['variant1']['conversion_rate'] == 0.0
+    assert result['variant2']['ctr'] == 0.0
+    assert result['variant2']['conversion_rate'] == 0.0
