@@ -1,14 +1,13 @@
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
-name = "code-catalyst"
-version = "1.0.0"
-description = "Code Catalyst Deployment Tool"
-
-[tool.poetry.dependencies]
-python = "^3.8"
-
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
+[project]
+name = "onboarding"
+version = "0.1.0"
+description = "A guided onboarding process for ProtoLaunch"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+license = {text = "MIT"}
+requires-python = ">=3.7"
