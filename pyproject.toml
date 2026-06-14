@@ -4,8 +4,8 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "code-catalyst"
-version = "0.1.0"
-description = ""
+version = "1.0.0"
+description = "Code Catalyst Deployment Tool"
 
 [tool.poetry.dependencies]
 python = "^3.8"

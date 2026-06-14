@@ -1,11 +1,7 @@
-# Code Catalyst
-A rapid prototyping platform for SaaS applications.
+# Code Catalyst Deployment Tool
 
-## Features
-* Library of functional components for common SaaS features
-* Drag-and-drop components to build your application
-* Pre-configured and easily customizable components
+This tool automates the deployment of code to a staging environment.
 
 ## Usage
-1. Run `python -m pytest` to test the platform.
-2. Run `python src/main.py` to build and run your application.
+
+To use this tool, simply run the following command:
