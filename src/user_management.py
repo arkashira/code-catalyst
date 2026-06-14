@@ -25,16 +25,15 @@ class UserManagement:
 
     def get_user_role(self, email: str):
         if email in self.users:
-            return self.users[email].role
+            return self.users[email].role.value
         else:
             return None
 
-    def send_invitation_email(self, email: str, link: str):
-        # Simulate sending an email
-        print(f"Sending invitation email to {email} with link {link}")
+    def send_invitation_email(self, email: str, project_link: str):
+        return f"Email sent to {email} with link {project_link}"
 
-    def join_project(self, email: str, link: str):
+    def join_project(self, email: str, project_link: str):
         if email in self.users:
-            print(f"User {email} joined the project with link {link}")
+            return f"{email} joined project {project_link}"
         else:
-            print(f"User {email} not found")
+            return f"User {email} not found"
