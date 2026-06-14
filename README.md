@@ -1,12 +1,5 @@
-# Analytics Project
-This project provides a simple analytics system for tracking user interactions.
+# Analytics Dashboard
+This project provides an analytics dashboard for user engagement. It includes features such as daily active users, session length, and feature usage.
 
-## Usage
-1. Create an instance of the `Analytics` class.
-2. Add user interactions using the `add_interaction` method.
-3. Get metrics using the `get_metrics` method.
-4. Export data using the `export_data` method.
-5. Display the dashboard using the `display_dashboard` method.
-
-## Testing
-Run the tests using `python -m pytest`.
+## Installation
+To install the project, run the following command:
