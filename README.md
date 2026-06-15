@@ -1,11 +1,8 @@
-# Code Catalyst
+# Axentx Product Example
 
-A Python project for generating MVP blueprints based on market validation data.
+This repository contains a tiny example Python package used by the Axentx
+pipeline. It provides a single utility function `add` and a corresponding
+test suite.
 
-## Usage
-
-1. Install the project using `poetry install`.
-2. Run the tests using `pytest`.
-3. Use the `process_market_insight` function to generate an MVP blueprint.
-
-## Example
+The project is deliberately minimal and depends only on the Python standard
+library.

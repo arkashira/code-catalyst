@@ -1,11 +1,21 @@
-"""
-axentx_product – a minimal arithmetic utility library.
+"""Axentx Product Example Package.
 
-Provides simple, well‑tested functions for addition, subtraction,
-multiplication and division. All operations validate their inputs
-and raise clear exceptions on error.
+This package provides a simple `add` function used in the test suite.
 """
 
-from .arithmetic import add, subtract, multiply, divide
+def add(a, b):
+    """Return the sum of *a* and *b*.
 
-__all__ = ["add", "subtract", "multiply", "divide"]
+    Parameters
+    ----------
+    a : int or float
+        First operand.
+    b : int or float
+        Second operand.
+
+    Returns
+    -------
+    int or float
+        The arithmetic sum of *a* and *b*.
+    """
+    return a + b
