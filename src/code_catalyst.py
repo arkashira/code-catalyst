@@ -1,31 +1,37 @@
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from typing import Dict
 
 @dataclass
 class MVPBlueprint:
     core_features: list
     tech_stack: list
-    estimated_build_time: str
+    estimated_build_time: int
 
-def generate_mvp_blueprint(market_insight: dict) -> MVPBlueprint:
-    core_features = market_insight.get("core_features", [])
-    tech_stack = market_insight.get("tech_stack", [])
-    estimated_build_time = estimate_build_time(core_features, tech_stack)
+def generate_mvp_blueprint(market_validation_data: Dict) -> MVPBlueprint:
+    core_features = market_validation_data.get("core_features", [])
+    tech_stack = market_validation_data.get("tech_stack", [])
+    estimated_build_time = market_validation_data.get("estimated_build_time", 0)
     return MVPBlueprint(core_features, tech_stack, estimated_build_time)
 
-def estimate_build_time(core_features: list, tech_stack: list) -> str:
-    # Simple estimation based on the number of features and tech stack complexity
-    feature_complexity = len(core_features) * 2
-    tech_stack_complexity = len(tech_stack) * 3
-    total_complexity = feature_complexity + tech_stack_complexity
-    estimated_build_time = str(timedelta(days=total_complexity))
-    return estimated_build_time
+def store_blueprint_in_workspace(blueprint: MVPBlueprint, user_id: int) -> None:
+    # In-memory storage for demonstration purposes
+    workspace = {}
+    workspace[user_id] = blueprint
+    return workspace
 
-def store_mvp_blueprint(mvp_blueprint: MVPBlueprint, user_workspace: str) -> None:
-    with open(f"{user_workspace}/mvp_blueprint.json", "w") as f:
-        json.dump({
-            "core_features": mvp_blueprint.core_features,
-            "tech_stack": mvp_blueprint.tech_stack,
-            "estimated_build_time": mvp_blueprint.estimated_build_time
-        }, f)
+def validate_market_insight(market_validation_data: Dict) -> bool:
+    required_fields = ["core_features", "tech_stack", "estimated_build_time"]
+    return all(field in market_validation_data for field in required_fields)
+
+def process_market_insight(market_validation_data: Dict) -> Dict:
+    if not validate_market_insight(market_validation_data):
+        raise ValueError("Invalid market insight data")
+    blueprint = generate_mvp_blueprint(market_validation_data)
+    user_id = 1  # Placeholder user ID
+    store_blueprint_in_workspace(blueprint, user_id)
+    return {
+        "core_features": blueprint.core_features,
+        "tech_stack": blueprint.tech_stack,
+        "estimated_build_time": blueprint.estimated_build_time,
+    }
